@@ -11,6 +11,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "k6": "^0.0.0"
+    "k6": "^0.0.0",
+    "wbd-tests": "file:"
   }
 }
