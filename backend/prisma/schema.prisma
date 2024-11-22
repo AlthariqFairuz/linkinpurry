@@ -1,0 +1,98 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           BigInt   @id @default(autoincrement())
+  username     String   @unique
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  // Relations
+  feeds              Feed[]              @relation("UserToFeed")
+  sentChats          Chat[]              @relation("SentChats")
+  receivedChats      Chat[]              @relation("ReceivedChats")
+  sentRequests       ConnectionRequest[]  @relation("SentRequests")
+  receivedRequests   ConnectionRequest[]  @relation("ReceivedRequests")
+  sentConnections    Connection[]         @relation("SentConnections")
+  receivedConnections Connection[]        @relation("ReceivedConnections")
+  pushSubscriptions  PushSubscription[]
+
+  @@map("users")
+}
+
+model Feed {
+  id        BigInt   @id @default(autoincrement())
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+  content   String   @db.Text
+  userId    BigInt   @map("user_id")
+  user      User     @relation("UserToFeed", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("feed")
+}
+
+model Chat {
+  id        BigInt   @id @default(autoincrement())
+  timestamp DateTime @default(now()) @db.Timestamptz()
+  fromId    BigInt   @map("from_id")
+  toId      BigInt   @map("to_id")
+  message   String   @db.Text
+
+  // Relations
+  from      User     @relation("SentChats", fields: [fromId], references: [id], onDelete: Cascade)
+  to        User     @relation("ReceivedChats", fields: [toId], references: [id], onDelete: Cascade)
+
+  @@map("chat")
+}
+
+model ConnectionRequest {
+  fromId    BigInt   @map("from_id")
+  toId      BigInt   @map("to_id")
+  createdAt DateTime @map("created_at") @db.Timestamptz()
+
+  // Relations
+  from      User     @relation("SentRequests", fields: [fromId], references: [id], onDelete: Cascade)
+  to        User     @relation("ReceivedRequests", fields: [toId], references: [id], onDelete: Cascade)
+
+  @@id([fromId, toId])
+  @@map("connection_request")
+}
+
+model Connection {
+  fromId    BigInt   @map("from_id")
+  toId      BigInt   @map("to_id")
+  createdAt DateTime @map("created_at") @db.Timestamptz()
+
+  // Relations
+  from      User     @relation("SentConnections", fields: [fromId], references: [id], onDelete: Cascade)
+  to        User     @relation("ReceivedConnections", fields: [toId], references: [id], onDelete: Cascade)
+
+  @@id([fromId, toId])
+  @@map("connection")
+}
+
+model PushSubscription {
+  endpoint  String   @id
+  userId    BigInt?  @map("user_id")
+  keys      Json
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  // Relations
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("push_subscriptions")
+}

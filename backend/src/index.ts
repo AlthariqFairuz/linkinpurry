@@ -1,16 +1,25 @@
-import 'dotenv/config';
-import { drizzle } from 'drizzle-orm/node-postgres';
-import { Pool } from 'pg';
+import { serve } from '@hono/node-server'
+import { Hono } from 'hono'
+import { cors } from 'hono/cors'
+import { logger } from 'hono/logger'
 
-if (!process.env.DATABASE_URL) {
-  throw new Error('DATABASE_URL environment variable is required');
-}
+const app = new Hono()
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: true
-});
+// Middleware
+app.use('*', logger())
+app.use('*', cors({
+  origin: ['http://localhost:5173'], // Your Vite React app URL
+  credentials: true
+}))
 
-const db = drizzle(pool);
+app.get('/', (c) => {
+  return c.text('Hello Hono!')
+})
 
-export default db;
+const port = 3000
+console.log(`Server is running on http://localhost:${port}`)
+
+serve({
+  fetch: app.fetch,
+  port
+})
