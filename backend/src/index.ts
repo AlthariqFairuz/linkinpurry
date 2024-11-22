@@ -1,25 +1,39 @@
-import { serve } from '@hono/node-server'
-import { Hono } from 'hono'
-import { cors } from 'hono/cors'
-import { logger } from 'hono/logger'
+import { serve } from '@hono/node-server';
+import { Hono } from 'hono';
+import { cors } from 'hono/cors';
+import { PrismaClient } from '@prisma/client';
+import { createClient } from 'redis';
+import { config } from 'dotenv';
 
-const app = new Hono()
+// load env
+config();
 
-// Middleware
-app.use('*', logger())
-app.use('*', cors({
-  origin: ['http://localhost:5173'], // Your Vite React app URL
-  credentials: true
-}))
+const app = new Hono();
+const prisma = new PrismaClient();
+const redis = createClient({
+  url: process.env.REDIS_URL
+});
 
+// Configure CORS
+app.use('/*', cors());
+
+// Basic health check route
 app.get('/', (c) => {
-  return c.text('Hello Hono!')
-})
+  return c.json({ status: 'ok', message: 'Server is running' });
+});
 
-const port = 3000
-console.log(`Server is running on http://localhost:${port}`)
+// Error handling middleware
+app.onError((err, c) => {
+  console.error(`Error: ${err}`);
+  return c.json({ error: 'Internal Server Error' }, 500);
+});
+
+// Start server
+const port = parseInt(process.env.PORT || '3000');
 
 serve({
   fetch: app.fetch,
   port
-})
+});
+
+console.log(`Server is running on port ${port}`);
