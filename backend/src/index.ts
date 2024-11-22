@@ -1,18 +1,16 @@
-import express from 'express';
-import cors from 'cors';
+import 'dotenv/config';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
 
-const app = express();
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL environment variable is required');
+}
 
-app.use(cors());
-app.use(express.json());
-
-// Health check endpoint
-app.get('/health', (_, res) => {
-  res.send('OK');
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: true
 });
 
-const PORT = process.env.PORT || 3000;
+const db = drizzle(pool);
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+export default db;
