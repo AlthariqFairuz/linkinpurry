@@ -4,27 +4,22 @@ services:
         context: ./frontend
         dockerfile: Dockerfile
       ports:
-        - "3000:3000"
+        - "5173:5173"
       environment:
-        - VITE_API_URL=http://backend:5000
-        - VITE_WS_URL=ws://backend:5000
-        - VITE_REDIS_URL=redis://redis:6379
+        - VITE_API_URL=http://backend:3000
       depends_on:
         - backend
         - redis
       restart: unless-stopped
+
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "5000:5000"
+      - "3000:3000"
     environment:
-      - PORT=${PORT}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_HOST=${POSTGRES_HOST}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       - REDIS_URL=redis://redis:6379
       - JWT_SECRET=${JWT_SECRET}
     depends_on:
@@ -45,6 +40,7 @@ services:
     ports:
       - "5433:5432" 
     volumes:
+      - postgres_data:/var/lib/postgresql/data
       - ./backend/db/init.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
