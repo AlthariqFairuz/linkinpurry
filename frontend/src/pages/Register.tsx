@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 export default function Register() {
@@ -7,28 +6,43 @@ export default function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e : React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:3000/auth/register', {
+      const response = await fetch('http://localhost:3000/auth/register', { 
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, email, password }),
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ 
+          username, 
+          email, 
+          password 
+        })
       });
       
       const data = await response.json();
-      if (data.success) {
-        login(data.data.token, data.data.user);
-        navigate('/dashboard');
+
+      //test debuggg
+      console.log('Response data:', data); 
+      
+      if (response.ok && data.success) { 
+        // Instead of logging in, redirect to login page with a success message
+        navigate('/login', { 
+          state: { 
+            message: 'Registration successful! Please login with your credentials.' 
+          }
+        });
       } else {
         setError(data.error || 'Registration failed');
       }
     } catch (err) {
-        setError(`An error occurred during login: ${err.message}`);
-      }
+      console.error('Registration error:', err);
+      setError('An error occurred during registration. Please try again.');
+    }
   };
 
   return (
@@ -54,7 +68,7 @@ export default function Register() {
                 id="username"
                 type="text"
                 required
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
               />
@@ -68,7 +82,7 @@ export default function Register() {
                 id="email"
                 type="email"
                 required
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -82,7 +96,7 @@ export default function Register() {
                 id="password"
                 type="password"
                 required
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
@@ -113,7 +127,7 @@ export default function Register() {
             <div className="mt-6">
               <a
                 href="/login"
-                className="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                className="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-mediu bg-white hover:bg-gray-50"
               >
                 Sign in
               </a>

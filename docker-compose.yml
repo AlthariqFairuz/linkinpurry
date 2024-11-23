@@ -27,8 +27,10 @@ services:
       - ./backend:/app/backend
       - /app/node_modules
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
     networks:
       - app-network
     restart: unless-stopped
@@ -61,8 +63,7 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
-
-
+      
 networks:
   app-network:
     driver: bridge

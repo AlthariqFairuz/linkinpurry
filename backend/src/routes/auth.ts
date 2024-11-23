@@ -1,29 +1,26 @@
 import { Hono } from 'hono';
-import { hash, compare } from 'bcrypt';
-import { PrismaClient } from '@prisma/client';
+import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { prisma } from '../index.js';
 
-type Env = {
-  JWT_SECRET: string;
-};
-
-const prisma = new PrismaClient();
-const auth = new Hono<{ Bindings: Env }>();
-
-// JWT Configuration
-const JWT_EXPIRES_IN = '1h'; // Token expires in 1 hour
+const auth = new Hono();
 
 // Helper function to generate JWT
-const generateToken = (userId: bigint, email: string) => {
+const generateToken = (user: { id: bigint; email: string; username: string }) => {
+
+  if (!process.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET is not defined in environment variables');
+  }
+
   return jwt.sign(
-    { 
-      userId: userId.toString(), // Convert BigInt to string for JWT
-      email: email 
-    }, 
-    process.env.JWT_SECRET!, 
-    { 
-      expiresIn: JWT_EXPIRES_IN 
-    }
+    {
+      userId: user.id.toString(), // Convert BigInt to string for JWT
+      email: user.email,
+      username: user.username,
+      iat: Math.floor(Date.now() / 1000), // Issued at timestamp
+      exp: Math.floor(Date.now() / 1000) + (60 * 60), // Expires in 1 hours
+    },
+    process.env.JWT_SECRET
   );
 };
 
@@ -31,47 +28,27 @@ auth.post('/register', async (c) => {
   try {
     const { username, email, password } = await c.req.json();
 
-    // Input validation
     if (!username || !email || !password) {
       return c.json({ 
-        success: false,
-        error: 'Username, email, and password are required' 
+        success: false, 
+        error: 'All fields are required' 
       }, 400);
     }
-
-    // Check if username already exists
-    const existingUsername = await prisma.user.findUnique({
-      where: {
-        username: username,
-      },
+    
+    // Check if user exists
+    const existingUser = await prisma.user.findFirst({
+      where: { OR: [{ email }, { username }] }
     });
 
-    if (existingUsername) {
-      return c.json({ 
-        success: false,
-        error: 'Username already taken' 
-      }, 400);
-    }
-
-    // Check if email already exists
-    const existingEmail = await prisma.user.findUnique({
-      where: {
-        email: email,
-      },
-    });
-
-    if (existingEmail) {
-      return c.json({ 
-        success: false,
-        error: 'Email already registered' 
-      }, 400);
+    if (existingUser) {
+      return c.json({ success: false, error: 'User already exists' }, 400);
     }
 
     // Hash password
-    const hashedPassword = await hash(password, 10);
+    const hashedPassword = await bcryptjs.hash(password, 10);
 
-    // Create new user
-    const newUser = await prisma.user.create({
+    // Create user
+    const user = await prisma.user.create({
       data: {
         username,
         email,
@@ -81,28 +58,24 @@ auth.post('/register', async (c) => {
         id: true,
         username: true,
         email: true,
-        createdAt: true
       }
     });
 
-    // Generate JWT with expiration
-    const token = generateToken(newUser.id, newUser.email);
+    // Generate token using the helper function
+    const token = generateToken(user);
 
     return c.json({
       success: true,
       data: {
         token,
-        user: newUser,
-        tokenExpires: JWT_EXPIRES_IN
+        user: {
+          username: user.username
+        }
       }
     });
-
   } catch (error) {
     console.error('Registration error:', error);
-    return c.json({ 
-      success: false,
-      error: 'Internal server error' 
-    }, 500);
+    return c.json({ success: false, error: 'Registration failed' }, 500);
   }
 });
 
@@ -110,61 +83,42 @@ auth.post('/login', async (c) => {
   try {
     const { email, password } = await c.req.json();
 
-    // Input validation
-    if (!email || !password) {
-      return c.json({ 
-        success: false,
-        error: 'Email and password are required' 
-      }, 400);
-    }
-
-    // Find user by email
-    const user = await prisma.user.findUnique({
-      where: {
-        email: email,
-      },
+    // Find user
+    const user = await prisma.user.findUnique({ 
+      where: { email },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        passwordHash: true,
+      }
     });
 
     if (!user) {
-      return c.json({ 
-        success: false,
-        error: 'Invalid credentials' 
-      }, 401);
+      return c.json({ success: false, error: 'Invalid credentials' }, 401);
     }
 
-    // Compare password
-    const isValidPassword = await compare(password, user.passwordHash);
-
-    if (!isValidPassword) {
-      return c.json({ 
-        success: false,
-        error: 'Invalid credentials' 
-      }, 401);
+    // Verify password
+    const isValid = await bcryptjs.compare(password, user.passwordHash);
+    if (!isValid) {
+      return c.json({ success: false, error: 'Invalid credentials' }, 401);
     }
 
-    // Generate JWT with expiration
-    const token = generateToken(user.id, user.email);
+    // Generate token using the helper function
+    const token = generateToken(user);
 
     return c.json({
       success: true,
       data: {
         token,
         user: {
-          id: user.id,
-          username: user.username,
-          email: user.email,
-          createdAt: user.createdAt
-        },
-        tokenExpires: JWT_EXPIRES_IN
+          username: user.username
+        }
       }
     });
-
   } catch (error) {
     console.error('Login error:', error);
-    return c.json({ 
-      success: false,
-      error: 'Internal server error' 
-    }, 500);
+    return c.json({ success: false, error: 'Login failed' }, 500);
   }
 });
 
