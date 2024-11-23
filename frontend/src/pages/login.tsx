@@ -35,24 +35,25 @@ export default function Login() {
     if (successMessage) {
       const timer = setTimeout(() => {
         setSuccessMessage('');
-      }, 3000);
+      }, 1000);
 
       return () => clearTimeout(timer);
     }
   }, [successMessage]);
 
-  const handleSubmit = async (e : React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const response = await fetch('http://localhost:3000/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
+        credentials: 'include', 
       });
       
       const data = await response.json();
       if (response.ok && data.success) { 
-        login(data.data.token, data.data.user); 
+        login(data.data.token); // Pass the token to the login function
         navigate('/home'); 
       } else {
         setError(data.error || 'Invalid credentials');

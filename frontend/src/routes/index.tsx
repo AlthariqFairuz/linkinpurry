@@ -5,17 +5,42 @@ import Register from '../pages/Register';
 import Home from '../pages/Home';
 import Guest from '../pages/Guest';
 
+// Loading component
+function LoadingSpinner() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+    </div>
+  );
+}
+
 function PrivateRoute({ children }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
+  
   return isAuthenticated ? children : <Navigate to="/guest" />;
 }
 
 function GuestRoute({ children }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
+  
   return isAuthenticated ? <Navigate to="/home" /> : children;
 }
 
 export default function AppRoutes() {
+  const { isLoading } = useAuth();
+
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
+
   return (
     <BrowserRouter>
       <Routes>

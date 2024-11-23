@@ -10,16 +10,21 @@ config();
 
 const app = new Hono();
 
-// Configure CORS
-app.use('/*', cors());
+const corsOptions = {
+  origin: 'http://localhost:5173', 
+  credentials: true,
+};
 
-// Mount auth routes
-app.route('/api', auth);
+// Configure CORS
+app.use('/*', cors(corsOptions));
 
 // Basic health check route
 app.get('/', (c) => {
   return c.json({ status: 'ok', message: 'Server is running' });
 });
+
+// Mount auth routes
+app.route('/api', auth);
 
 // Error handling middleware
 app.onError((err, c) => {

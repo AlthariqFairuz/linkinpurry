@@ -21,16 +21,17 @@ export default function Register() {
           username, 
           email, 
           password 
-        })
+        }),
+        credentials: 'include',
       });
       
       const data = await response.json();
 
-      //test debuggg
-      console.log('Response data:', data); 
+      // //test debuggg
+      // console.log('Response data:', data); 
       
       if (response.ok && data.success) { 
-        // Instead of logging in, redirect to login page with a success message
+        // redirect to login page with a success message
         navigate('/login', { 
           state: { 
             message: 'Registration successful! Please login with your credentials.' 
