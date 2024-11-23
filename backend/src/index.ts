@@ -14,7 +14,7 @@ const app = new Hono();
 app.use('/*', cors());
 
 // Mount auth routes
-app.route('/auth', auth);
+app.route('/api', auth);
 
 // Basic health check route
 app.get('/', (c) => {

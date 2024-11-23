@@ -5,10 +5,10 @@ export interface User {
     createdAt: string;
   }
   
-  export interface AuthResponse {
-    success: boolean;
-    data?: {
-      token: string;
-    };
-    error?: string;
-  }
+export interface AuthResponse {
+  success: boolean;
+  data?: {
+    token: string;
+  };
+  error?: string;
+}
