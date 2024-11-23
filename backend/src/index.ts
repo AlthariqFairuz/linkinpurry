@@ -1,19 +1,14 @@
 import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
-import { PrismaClient } from '@prisma/client';
-import { createClient } from 'redis';
 import { config } from 'dotenv';
 import auth from './routes/auth.js';
+import { prisma, redis } from './db/connections.js'; 
 
 // load env
 config();
 
 const app = new Hono();
-export const prisma = new PrismaClient();
-export const redis = createClient({
-  url: process.env.REDIS_URL
-});
 
 // Configure CORS
 app.use('/*', cors());
@@ -39,5 +34,3 @@ serve({
   fetch: app.fetch,
   port
 });
-
-console.log(`Server is running on port ${port}`);

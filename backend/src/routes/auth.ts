@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { prisma } from '../index.js';
+import { prisma } from '../db/connections.js';
 
 const auth = new Hono();
 
@@ -67,10 +67,7 @@ auth.post('/register', async (c) => {
     return c.json({
       success: true,
       data: {
-        token,
-        user: {
-          username: user.username
-        }
+        token
       }
     });
   } catch (error) {
@@ -110,10 +107,7 @@ auth.post('/login', async (c) => {
     return c.json({
       success: true,
       data: {
-        token,
-        user: {
-          username: user.username
-        }
+        token
       }
     });
   } catch (error) {
@@ -121,39 +115,5 @@ auth.post('/login', async (c) => {
     return c.json({ success: false, error: 'Login failed' }, 500);
   }
 });
-
-// // Add a middleware to verify JWT
-// const verifyJWT = async (c, next) => {
-//   try {
-//     const authHeader = c.req.header('Authorization');
-    
-//     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-//       return c.json({ 
-//         success: false, 
-//         error: 'No token provided' 
-//       }, 401);
-//     }
-
-//     const token = authHeader.split(' ')[1];
-//     const decoded = jwt.verify(token, c.env.JWT_SECRET) as { userId: string; email: string };
-    
-//     // Add decoded user to context for use in protected routes
-//     c.set('user', decoded);
-    
-//     await next();
-//   } catch (error) {
-//     if (error instanceof jwt.TokenExpiredError) {
-//       return c.json({ 
-//         success: false, 
-//         error: 'Token expired' 
-//       }, 401);
-//     }
-    
-//     return c.json({ 
-//       success: false, 
-//       error: 'Invalid token' 
-//     }, 401);
-//   }
-// };
 
 export default auth;

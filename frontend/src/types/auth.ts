@@ -9,8 +9,6 @@ export interface User {
     success: boolean;
     data?: {
       token: string;
-      user: User;
-      tokenExpires: string;
     };
     error?: string;
   }
