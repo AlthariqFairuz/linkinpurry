@@ -68,7 +68,7 @@ export default function Register() {
           <Card className="border-none shadow-lg">
             <CardHeader className="space-y-1">
               <CardTitle className="text-2xl md:text-3xl font-semibold text-gray-900">
-                Join LinkedIn
+                Join LinkedInPurry
               </CardTitle>
               <CardDescription className="text-base text-gray-600">
                 Make the most of your professional life
@@ -173,7 +173,7 @@ export default function Register() {
 
                 <div className="text-center">
                   <p className="text-base">
-                    Already on LinkedIn?{' '}
+                    Already on LinkedInPurry?{' '}
                     <a href="/login" className="text-[#0a66c2] hover:underline font-medium">
                       Sign in
                     </a>
@@ -182,7 +182,7 @@ export default function Register() {
 
                 <div className="mt-6 text-center text-xs text-gray-600">
                   <p>
-                    By clicking Agree & Join, you agree to LinkedIn's{' '}
+                    By clicking Agree & Join, you agree to LinkedInPurry's{' '}
                     <a href="#" className="text-[#0a66c2] hover:underline">User Agreement</a>,{' '}
                     <a href="#" className="text-[#0a66c2] hover:underline">Privacy Policy</a>, and{' '}
                     <a href="#" className="text-[#0a66c2] hover:underline">Cookie Policy</a>.

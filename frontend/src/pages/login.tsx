@@ -154,7 +154,7 @@ export default function Login() {
 
                 <div className="text-center">
                   <p className="text-base">
-                    New to LinkedIn?{' '}
+                    New to LinkedInPurry?{' '}
                     <a href="/register" className="text-[#0a66c2] hover:underline font-medium">
                       Join now
                     </a>
