@@ -1,11 +1,10 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuthCheck } from '../hooks/useAuthCheck';
 import Login from '../pages/Login';
 import Register from '../pages/Register';
 import Home from '../pages/Home';
 import Guest from '../pages/Guest';
 
-// Loading component
 function LoadingSpinner() {
   return (
     <div className="min-h-screen flex items-center justify-center">
@@ -15,7 +14,7 @@ function LoadingSpinner() {
 }
 
 function PrivateRoute({ children }) {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading } = useAuthCheck();
   
   if (isLoading) {
     return <LoadingSpinner />;
@@ -25,7 +24,7 @@ function PrivateRoute({ children }) {
 }
 
 function GuestRoute({ children }) {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading } = useAuthCheck();
   
   if (isLoading) {
     return <LoadingSpinner />;
@@ -35,12 +34,6 @@ function GuestRoute({ children }) {
 }
 
 export default function AppRoutes() {
-  const { isLoading } = useAuth();
-
-  if (isLoading) {
-    return <LoadingSpinner />;
-  }
-
   return (
     <BrowserRouter>
       <Routes>

@@ -1,37 +1,27 @@
-import { useAuth } from '../contexts/AuthContext';
-import { useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export default function Home() {
-  const { token, logout } = useAuth();
+  const navigate = useNavigate();
 
-  // Get user info from token when needed
-  const userInfo = useMemo(() => {
-    if (!token) return null;
+  const handleLogout = async () => {
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return {
-        username: payload.username,
-        email: payload.email
-      };
+      await fetch('http://localhost:3000/api/logout', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      navigate('/login', {
+        state: {
+          message: 'Logout successful!'
+        }
+      });
     } catch (error) {
-      console.error('Error decoding token:', error);
-      return null;
+      console.error('Logout error:', error);
     }
-  }, [token]);
-
-  useEffect(() => {
-    if (!token) {
-      window.location.href = '/login';
-    }
-  }, [token]);
-
-  const handleLogout = () => {
-    logout();
   };
-
-  if (!userInfo) {
-    return null;
-  }
 
   return (
     <div className="min-h-screen w-full bg-gray-100">
@@ -40,7 +30,7 @@ export default function Home() {
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <h1 className="text-xl font-semibold text-gray-900">
-                Welcome, {userInfo.username}
+                Welcome, 
               </h1>
             </div>
             <div className="flex items-center">

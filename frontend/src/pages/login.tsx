@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AlertCircle } from 'lucide-react';
 
@@ -8,10 +7,8 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-  const { login } = useAuth();
-  const navigate = useNavigate();
   const location = useLocation();
-
+  const navigate = useNavigate();
   useEffect(() => {
     if (location.state?.message) {
       setSuccessMessage(location.state.message);
@@ -53,10 +50,13 @@ export default function Login() {
       
       const data = await response.json();
       if (response.ok && data.success) { 
-        login(data.data.token); // Pass the token to the login function
-        navigate('/home'); 
+        navigate('/home', { 
+          state: { 
+            message: data.message 
+          }
+        });
       } else {
-        setError(data.error || 'Invalid credentials');
+        setError(data.message || 'Invalid credentials');
       }
     } catch (err) {
       setError(`An error occurred during login: ${err.message}`);
