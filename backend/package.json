@@ -4,7 +4,7 @@
   "scripts": {
     "migrate": "prisma migrate deploy",
     "generate": "prisma generate",
-    "dev": "npm run migrate && npm run generate && tsx watch src/index.ts"
+    "dev": "npm run migrate && npm run generate && tsx watch --clear-screen=false src/index.ts"
   },
   "dependencies": {
     "@hono/node-server": "^1.13.7",
