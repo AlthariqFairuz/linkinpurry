@@ -18,10 +18,10 @@ const corsOptions = {
 // Configure CORS
 app.use('/*', cors(corsOptions));
 
-// Basic health check route
-app.get('/', (c) => {
-  return c.json({ status: 'ok', message: 'Server is running' });
-});
+// // Basic health check route
+// app.get('/', (c) => {
+//   return c.json({ status: 'ok', message: 'Server is running' });
+// });
 
 // Mount auth routes
 app.route('/api', auth);
@@ -29,7 +29,11 @@ app.route('/api', auth);
 // Error handling middleware
 app.onError((err, c) => {
   console.error(`Error: ${err}`);
-  return c.json({ error: 'Internal Server Error' }, 500);
+  return c.json({ 
+    success: false, 
+    message: 'Internal Server Error', 
+    body: null 
+  }, 500);
 });
 
 // Start server

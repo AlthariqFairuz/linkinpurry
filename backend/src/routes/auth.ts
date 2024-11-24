@@ -69,7 +69,10 @@ auth.get('/verify', async (c) => {
     const token = getCookie(c, 'jwt');
     
     if (!token) {
-      return c.json({ success: false, error: 'No token found' }, 401);
+      return c.json({ success: false, 
+        message: 'No token found', 
+        body: null 
+      }, 401);
     }
 
     const decoded = await verifyToken(token);
@@ -77,44 +80,70 @@ auth.get('/verify', async (c) => {
     // Check if token is expired
     if (decoded.exp * 1000 < Date.now()) {
       removeTokenCookie(c);
-      return c.json({ success: false, error: 'Token expired' }, 401);
+      return c.json({ 
+        success: false, 
+        message: 'Token expired', 
+        body: null 
+      }, 401);
     }
 
     return c.json({
       success: true,
-      token,
-      data: {
-        userId: decoded.userId,
-        email: decoded.email,
-        username: decoded.username
+      message: 'Token verified',
+      body: {
+        token
       }
     });
   } catch (error) {
     removeTokenCookie(c);
-    return c.json({ success: false, error: 'Invalid token' }, 401);
+    return c.json({ 
+      success: false, 
+      message: 'Invalid token', 
+      body: null 
+    }, 401);
   }
 });
 
 // Add logout endpoint
 auth.post('/logout', (c) => {
   removeTokenCookie(c);
-  return c.json({ success: true, message: 'Logged out successfully' });
+  return c.json({ 
+    success: true, 
+    message: 'Logged out successfully', 
+    body: null 
+  });
 });
 
 auth.post('/register', async (c) => {
   try {
-    const { username, email, password } = await c.req.json();
+    const { username, name, email, password, confirmPassword } = await c.req.json();
 
-    if (!username || !email || !password) {
-      return c.json({ success: false, error: 'All fields are required' }, 400);
+    if (!username || !name || !email || !password || !confirmPassword) {
+      return c.json({ 
+        success: false, 
+        message: 'All fields are required', 
+        body: null 
+      }, 400);
     }
     
     const existingUser = await prisma.user.findFirst({
-      where: { OR: [{ email }, { username }] }
+      where: { email }
     });
 
     if (existingUser) {
-      return c.json({ success: false, error: 'User already exists' }, 400);
+      return c.json({ 
+        success: false, 
+        message: 'User already exists', 
+        body: null 
+      }, 400);
+    }
+
+    if (password !== confirmPassword) {
+      return c.json({ 
+        success: false, 
+        message: 'Passwords do not match', 
+        body: null 
+      }, 400);
     }
 
     // Using bcrypt with salt round 10 as required
@@ -123,22 +152,23 @@ auth.post('/register', async (c) => {
     const user = await prisma.user.create({
       data: {
         username,
+        name,
         email,
         passwordHash: hashedPassword,
-      },
-      select: {
-        id: true,
-        username: true,
-        email: true,
       }
     });
 
     return c.json({
       success: true,
       message: "Registration Successful",
+      body: null
     });
   } catch (error) {
-    return c.json({ success: false, error: 'Registration failed' }, 500);
+    return c.json({ 
+      success: false, 
+      message: `Registration failed: ${error}`, 
+      body: null 
+    }, 500);
   }
 });
 
@@ -147,20 +177,14 @@ auth.post('/login', async (c) => {
     const { email, password } = await c.req.json();
 
     const user = await prisma.user.findUnique({ 
-      where: { email },
-      select: {
-        id: true,
-        email: true,
-        username: true,
-        passwordHash: true,
-      }
+      where: { email }
     });
 
     if (!user) {
       return c.json({ 
         success: false, 
         message: 'Invalid credentials',
-        error: 'Invalid credentials'
+        body: null 
       }, 401);
     }
 
@@ -169,7 +193,7 @@ auth.post('/login', async (c) => {
       return c.json({ 
         success: false, 
         message: 'Invalid credentials',
-        error: 'Invalid credentials'
+        body: null 
       }, 401);
     }
 
@@ -179,12 +203,16 @@ auth.post('/login', async (c) => {
     return c.json({
       success: true,
       message: 'Login Success!',
-      data: {
+      body: {
         token
       }
     });
   } catch (error) {
-    return c.json({ success: false, error: 'Login failed' }, 500);
+    return c.json({ 
+      success: false, 
+      message: 'Login failed', 
+      body: null 
+    }, 500);
   }
 });
 
