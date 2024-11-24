@@ -1,18 +1,34 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import Footer from '@/components/ui/footer';
 import { ProfileCard } from '@/components/ui/profilecard';
 import { Post } from '@/components/ui/post';
 import { Sidebar } from '@/components/ui/sidebar';
 import { Navbar } from '@/components/ui/navbar';
 import { ProfilePicture } from '@/components/ui/profilephoto';
+import { fetchUser } from '@/middleware/fetchUser';
+import { useEffect } from 'react';
+import { useState } from 'react';
+import { UserProfile, User } from '@/types/User';
 
 export default function Home() {
   const navigate = useNavigate();
-  const user = {
-    fullName: 'Ai Hoshino Bini Gw (need to be fetched from API)',
-    title: 'fulstek',
-    location: 'Ngawi 69'
-  };
+  const { id } = useParams();
+  const [userData, setUserData] = useState<UserProfile | User>(null);
+ 
+  useEffect(() => {
+   const loadUser = async () => {
+     try {
+       if (!id) return;
+       const fetchedUser = await fetchUser(id);
+       if (fetchedUser) {
+         setUserData(fetchedUser);
+       }
+     } catch (error) {
+       console.error('User error:', error);
+     }
+   };
+    loadUser();
+ }, [id]);
 
   const posts = [
     {
@@ -45,15 +61,15 @@ export default function Home() {
 
   const handleProfile = async () => {
     try {
-      navigate('/profile', {
-        state: {
-          message: 'Profile successful!'
-        }
-      });
+      navigate(`/profile/${id}`);
     } catch (error) {
       console.error('Profile error:', error);
     }
   };
+
+  console.log(id);
+
+  console.log(userData);
 
   return (
     <div className="min-h-screen bg-gray-100 pb-[68px]">
@@ -62,7 +78,7 @@ export default function Home() {
       <main className="pt-20 pb-8">
         <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-4 gap-6">
           <div className="lg:col-span-1">
-            <ProfileCard user={user} />
+            <ProfileCard username="bambang" email="bambang@gmail.com" fullName="bambang" />
           </div>
 
           <div className="lg:col-span-2">

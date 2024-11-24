@@ -34,6 +34,10 @@ function GuestRoute({ children }) {
   return isAuthenticated ? <Navigate to="/home" /> : children;
 }
 
+function PublicRoute({ children }) {
+  return children;
+}
+
 export default function AppRoutes() {
   return (
     <BrowserRouter>
@@ -54,15 +58,10 @@ export default function AppRoutes() {
         } />
 
         {/* Profile Route */}
-        <Route path="/profile" element={
-          <PrivateRoute>
-            <Profile />
-          </PrivateRoute>
-        } />
         <Route path="/profile/:id" element={
-          <GuestRoute>
+          <PublicRoute>
             <Profile />
-          </GuestRoute>
+          </PublicRoute>
         } />
 
         {/* Protected Routes */}

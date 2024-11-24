@@ -4,16 +4,8 @@ import { getCookie, setCookie } from 'hono/cookie'
 import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../db/connections.js';
-import { PrismaClient } from '@prisma/client';
 
 const auth = new Hono();
-
-const userModel = {
-  fullName: true,
-  workHistory: true,
-  skills: true,
-  profilePhotoPath: true,
-} satisfies PrismaClient.User;
 
 // Helper function to generate JWT with exactly 1 hour TTL
 const generateToken = (user: { id: bigint; email: string; username: string; fullName: string | null }) => {
@@ -129,10 +121,10 @@ auth.post('/register', async (c) => {
   try {
     const { username, fullName, email, password, confirmPassword } = await c.req.json();
 
-    if (!username || !fullName || !email || !password || !confirmPassword) {
+    if (!username || !email || !password || !confirmPassword) {
       return c.json({ 
         success: false, 
-        message: 'All fields are required', 
+        message: 'All fields excepts fullName are required', 
         body: null 
       }, 400);
     }
@@ -160,7 +152,7 @@ auth.post('/register', async (c) => {
     // Using bcrypt with salt round 10 as required
     const hashedPassword = await bcryptjs.hash(password, 10);
 
-    const user = await prisma.user.create({
+    await prisma.user.create({
       data: {
         username,
         fullName,
@@ -230,11 +222,11 @@ auth.post('/login', async (c) => {
 
 auth.get('/profile/:id', async (c) => {
   try {
-    const userId = c.req.param('id');
+
+    const userId = BigInt(c.req.param('id'));
 
     const user = await prisma.user.findUnique({ 
-      where: { id: userId },
-      select: userModel,
+      where: { id: userId }
     });
 
     if (!user) {
@@ -246,90 +238,56 @@ auth.get('/profile/:id', async (c) => {
     }
 
     const token = getCookie(c, 'jwt');
+
     if (!token) {
       return c.json({
         success: true,
-        message: 'Public profile',
+        message: 'Public Profile',
         body: {
-          user
+          fullName: user.fullName,
+          skills: user.skills,
+          workHistory: user.workHistory,
+          profilePhotoPath: user.profilePhotoPath
         }
       });
     }
-
     const decoded = await verifyToken(token);
     
-    // Check if token is expired
-    if (decoded.exp * 1000 < Date.now()) {
+    if (decoded.userId == userId) {
       return c.json({
         success: true,
-        message: 'Public profile',
+        message: 'Owner profile',
         body: {
-          user
+          id: user.id.toString(),
+          email: user.email,
+          username: user.username,
+          fullName: user.fullName,
+          skills: user.skills,
+          workHistory: user.workHistory,
+          profilePhotoPath: user.profilePhotoPath
         }
       });
     }
 
-    return c.json({
-      success: true,
-      message: 'Owner profile',
-      body: {
-        user
-      }
-    });
+    else {
+      return c.json({
+        success: true,
+        message: 'Public Profile',
+        body: {
+          fullName: user.fullName,
+          skills: user.skills,
+          workHistory: user.workHistory,
+          profilePhotoPath: user.profilePhotoPath
+        }
+      });
+    } 
+
   } catch (error) {
     removeTokenCookie(c);
     return c.json({ 
       success: false, 
       message: 'Invalid token', 
-      body: null 
-    }, 401);
-  }
-});
-
-auth.get('/profile', async (c) => {
-  try {
-    const token = getCookie(c, 'jwt');
-    
-    if (!token) {
-      return c.json({ success: false, 
-        message: 'No token found', 
-        body: null 
-      }, 401);
-    }
-
-    const decoded = await verifyToken(token);
-    
-    // Check if token is expired
-    if (decoded.exp * 1000 < Date.now()) {
-      removeTokenCookie(c);
-      return c.json({ 
-        success: false, 
-        message: 'Token expired', 
-        body: null 
-      }, 401);
-    }
-
-    var userId = decoded.userId;
-    const user = await prisma.user.findUnique({ 
-      where: { id: userId },
-      select: userModel,
-    });
-
-    console.log(user);
-
-    return c.json({
-      success: true,
-      message: 'Owner profile',
-      body: {
-        user
-      }
-    });
-  } catch (error) {
-    removeTokenCookie(c);
-    return c.json({ 
-      success: false, 
-      message: 'Invalid token', 
-      body: null 
+      body: error
     }, 401);
   }
 });

@@ -1,7 +1,7 @@
 import { ProfilePicture } from "./profilephoto";
 import ProfileCardProps from '@/types/ProfileCard';
 
-export const ProfileCard = ({ user }: ProfileCardProps) => {
+export const ProfileCard = ({ username, email, fullName }: ProfileCardProps) => {
     return (
       <div className="bg-white rounded-lg shadow mb-4">
         <img 
@@ -14,9 +14,9 @@ export const ProfileCard = ({ user }: ProfileCardProps) => {
             <ProfilePicture size="lg" />
           </div>
           <div className="mb-4">
-            <h2 className="text-gray-900 text-xl font-bold">{user.fullName}</h2>
-            <p className="text-gray-600">{user.title}</p>
-            <p className="text-sm text-gray-500 mt-1">{user.location}</p>
+            <h2 className="text-gray-900 text-xl font-bold">{fullName}</h2>
+            <p className="text-gray-600">{email}</p>
+            <p className="text-sm text-gray-500 mt-1">{username}</p>
           </div>
           <div className="border-t border-b py-2 mb-4">
             <div className="text-sm">
