@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AlertCircle } from 'lucide-react';
+import { Card, CardContent, CardTitle, CardDescription, CardHeader } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -64,97 +68,101 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-gray-100 flex flex-col items-center justify-center">
-    <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="bg-white p-8 rounded-lg shadow-sm">
-        {/* Header */}
-        <div className="flex justify-center mb-6">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-8 h-8 text-blue-700 fill-current">
+    <div className="min-h-screen bg-[#f3f2ef]">
+      {/* Navigation */}
+      <nav className="bg-white border-b border-gray-200">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-8 h-8 text-[#0a66c2] fill-current">
             <path d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 118.3 6.5a1.78 1.78 0 01-1.8 1.75zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0013 14.19a.66.66 0 000 .14V19h-3v-9h2.9v1.3a3.11 3.11 0 012.7-1.4c1.55 0 3.36.86 3.36 3.66z"></path>
           </svg>
         </div>
+      </nav>
 
-        <h2 className="text-3xl font-semibold text-gray-900 mb-4">
-          Sign in
-        </h2>
-        <p className="text-sm text-gray-600 mb-6">
-          Stay updated on your professional world
-        </p>
-
-          <form className="space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="flex items-center p-4 bg-red-50 rounded-lg">
-              <AlertCircle className="h-5 w-5 text-red-600 mr-2" />
-              <span className="text-red-600 text-sm">{error}</span>
-            </div>
-          )}
-          
-          {successMessage && (
-            <div className="flex items-center p-4 bg-green-50 rounded-lg">
-              <AlertCircle className="h-5 w-5 text-green-600 mr-2" />
-              <span className="text-green-600 text-sm">{successMessage}</span>
-            </div>
-          )}
-            
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email
-              </label>
-              <input
-                id="email"
-                type="email"
-                required
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 bg-white text-gray-900"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <input
-                id="password"
-                type="password"
-                required
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 bg-white text-gray-900"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-            
-            <div>
-              <button
-                type="submit"
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-full text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
+      {/* Main Content */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+        <div className="max-w-md mx-auto">
+          <Card className="border-none shadow-lg">
+            <CardHeader className="space-y-1">
+              <CardTitle className="text-2xl md:text-3xl font-semibold text-gray-900">
                 Sign in
-              </button>
-            </div>
-          </form>
+              </CardTitle>
+              <CardDescription className="text-base text-gray-600">
+                Stay updated on your professional world
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {error && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
+                
+                {successMessage && (
+                  <Alert variant="default" className="bg-green-50 text-green-600 border-green-200">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{successMessage}</AlertDescription>
+                  </Alert>
+                )}
 
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">
-                  or
-                </span>
-              </div>
-            </div>
+                <div className="space-y-2">
+                  <label htmlFor="email" className="text-sm font-medium text-gray-700">
+                    Email
+                  </label>
+                  <Input
+                    id="email"
+                    type="email"
+                    required
+                    className="w-full"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
 
-            <div className="mt-6">
-              <p className="text-center text-base">
-                New to LinkedIn?{' '}
-                <a href="/register" className="text-blue-600 font-medium hover:text-blue-700">
-                  Join now
-                </a>
-              </p>
-            </div>
-          </div>
+                <div className="space-y-2">
+                  <label htmlFor="password" className="text-sm font-medium text-gray-700">
+                    Password
+                  </label>
+                  <Input
+                    id="password"
+                    type="password"
+                    required
+                    className="w-full"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full bg-[#0a66c2] hover:bg-[#004182] text-white rounded-full h-12 text-base font-medium"
+                >
+                  Sign in
+                </Button>
+
+                <div className="relative my-8">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-300" />
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-2 bg-white text-gray-500">
+                      or
+                    </span>
+                  </div>
+                </div>
+
+                <div className="text-center">
+                  <p className="text-base">
+                    New to LinkedIn?{' '}
+                    <a href="/register" className="text-[#0a66c2] hover:underline font-medium">
+                      Join now
+                    </a>
+                  </p>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
