@@ -3,7 +3,6 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { config } from 'dotenv';
 import auth from './routes/auth.js';
-import { prisma, redis } from './db/connections.js'; 
 
 // load env
 config();

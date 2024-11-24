@@ -1,3 +1,4 @@
+import Footer from '@/components/ui/footer';
 import { useNavigate } from 'react-router-dom';
 
 export default function Home() {
@@ -51,6 +52,9 @@ export default function Home() {
           <p className="text-gray-600">Welcome to your dashboard. More features coming soon!</p>
         </div>
       </main>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

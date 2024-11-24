@@ -3,6 +3,7 @@ import { useAuthCheck } from '../hooks/useAuthCheck';
 import Login from '../pages/Login';
 import Register from '../pages/Register';
 import Home from '../pages/Home';
+import NotFound from '@/pages/NotFound';
 
 function LoadingSpinner() {
   return (
@@ -61,6 +62,7 @@ export default function AppRoutes() {
             <Login />
           </GuestRoute>
         } />
+      <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );
