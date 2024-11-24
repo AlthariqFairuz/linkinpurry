@@ -3,7 +3,6 @@ import { useAuthCheck } from '../hooks/useAuthCheck';
 import Login from '../pages/Login';
 import Register from '../pages/Register';
 import Home from '../pages/Home';
-import Guest from '../pages/Guest';
 
 function LoadingSpinner() {
   return (
@@ -20,7 +19,7 @@ function PrivateRoute({ children }) {
     return <LoadingSpinner />;
   }
   
-  return isAuthenticated ? children : <Navigate to="/guest" />;
+  return isAuthenticated ? children : <Navigate to="/login" />;
 }
 
 function GuestRoute({ children }) {
@@ -38,11 +37,6 @@ export default function AppRoutes() {
     <BrowserRouter>
       <Routes>
         {/* Guest Routes */}
-        <Route path="/guest" element={
-          <GuestRoute>
-            <Guest />
-          </GuestRoute>
-        } />
         <Route path="/login" element={
           <GuestRoute>
             <Login />
@@ -64,7 +58,7 @@ export default function AppRoutes() {
         {/* Root Route */}
         <Route path="/" element={
           <GuestRoute>
-            <Guest />
+            <Login />
           </GuestRoute>
         } />
       </Routes>

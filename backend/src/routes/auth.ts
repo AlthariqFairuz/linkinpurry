@@ -91,7 +91,8 @@ auth.get('/verify', async (c) => {
       success: true,
       message: 'Token verified',
       body: {
-        token
+        token,
+        decoded
       }
     });
   } catch (error) {
