@@ -8,7 +8,7 @@ import { prisma } from '../db/connections.js';
 const auth = new Hono();
 
 // Helper function to generate JWT with exactly 1 hour TTL
-const generateToken = (user: { id: bigint; email: string; username: string }) => {
+const generateToken = (user: { id: bigint; email: string; username: string; fullName: string | null }) => {
   const secret = process.env.JWT_SECRET;
   if (!secret) {
     throw new Error('JWT_SECRET is not defined in environment variables');
@@ -19,6 +19,7 @@ const generateToken = (user: { id: bigint; email: string; username: string }) =>
       userId: user.id.toString(),
       email: user.email,
       username: user.username,
+      fullName: user.fullName,
       iat: Math.floor(Date.now() / 1000),
       exp: Math.floor(Date.now() / 1000) + 3600, 
     },
@@ -92,7 +93,8 @@ auth.get('/verify', async (c) => {
       message: 'Token verified',
       body: {
         token,
-        decoded
+        email: decoded.email,
+        fullName: decoded.fullName
       }
     });
   } catch (error) {
@@ -117,9 +119,9 @@ auth.post('/logout', (c) => {
 
 auth.post('/register', async (c) => {
   try {
-    const { username, name, email, password, confirmPassword } = await c.req.json();
+    const { username, fullName, email, password, confirmPassword } = await c.req.json();
 
-    if (!username || !name || !email || !password || !confirmPassword) {
+    if (!username || !fullName || !email || !password || !confirmPassword) {
       return c.json({ 
         success: false, 
         message: 'All fields are required', 
@@ -128,7 +130,7 @@ auth.post('/register', async (c) => {
     }
     
     const existingUser = await prisma.user.findFirst({
-      where: { email }
+      where: { OR: [{ email }, { username }] }
     });
 
     if (existingUser) {
@@ -153,9 +155,10 @@ auth.post('/register', async (c) => {
     const user = await prisma.user.create({
       data: {
         username,
-        name,
+        fullName,
         email,
         passwordHash: hashedPassword,
+        profilePhotoPath: '/app/frontend/src/assets/default.jpg'
       }
     });
 

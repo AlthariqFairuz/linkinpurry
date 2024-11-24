@@ -15,14 +15,17 @@ datasource db {
 }
 
 model User {
-  id           BigInt   @id @default(autoincrement())
-  username     String   
-  name         String   
-  email        String   @unique
-  passwordHash String   @map("password_hash")
-  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz()
-
+  id               BigInt   @id @default(autoincrement())
+  username         String   @unique
+  email            String   @unique
+  passwordHash     String   @map("password_hash")
+  fullName         String?  @map("full_name")
+  workHistory      String?  @map("work_history") @db.Text
+  skills           String?  @map("skills") @db.Text
+  profilePhotoPath String   @map("profile_photo_path")
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+  
   // Relations
   feeds              Feed[]              @relation("UserToFeed")
   sentChats          Chat[]              @relation("SentChats")
@@ -32,7 +35,6 @@ model User {
   sentConnections    Connection[]         @relation("SentConnections")
   receivedConnections Connection[]        @relation("ReceivedConnections")
   pushSubscriptions  PushSubscription[]
-
   @@map("users")
 }
 

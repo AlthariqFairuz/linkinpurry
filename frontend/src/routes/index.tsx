@@ -37,12 +37,15 @@ export default function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
+
         {/* Guest Routes */}
         <Route path="/login" element={
           <GuestRoute>
             <Login />
           </GuestRoute>
         } />
+
+        {/* Register Route */}
         <Route path="/register" element={
           <GuestRoute>
             <Register />
@@ -62,7 +65,9 @@ export default function AppRoutes() {
             <Login />
           </GuestRoute>
         } />
-      <Route path="*" element={<NotFound />} />
+
+        {/* Not Found Route */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );

@@ -1,8 +1,27 @@
-import Footer from '@/components/ui/footer';
 import { useNavigate } from 'react-router-dom';
+import Footer from '@/components/ui/footer';
+import { ProfileCard } from '@/components/ui/profilecard';
+import { Post } from '@/components/ui/post';
+import { Sidebar } from '@/components/ui/sidebar';
+import { Navbar } from '@/components/ui/navbar';
+import { ProfilePicture } from '@/components/ui/profilephoto';
 
 export default function Home() {
   const navigate = useNavigate();
+  const user = {
+    fullName: 'Ai Hoshino Bini Gw (need to be fetched from API)',
+    title: 'fulstek',
+    location: 'Ngawi 69'
+  };
+
+  const posts = [
+    {
+      id: 1,
+    },
+    {
+      id: 2,
+    }
+  ];
 
   const handleLogout = async () => {
     try {
@@ -25,35 +44,36 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-gray-100">
-      <nav className="bg-white shadow w-full">
-        <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-semibold text-gray-900">
-                Welcome, 
-              </h1>
-            </div>
-            <div className="flex items-center">
-              <button
-                onClick={handleLogout}
-                className="ml-4 px-4 py-2 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+    <div className="min-h-screen bg-gray-100 pb-[68px]">
+      <Navbar onLogout={handleLogout} />
 
-      <main className="w-full mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Dashboard</h2>
-          <p className="text-gray-600">Welcome to your dashboard. More features coming soon!</p>
+      <main className="pt-20 pb-8">
+        <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="lg:col-span-1">
+            <ProfileCard user={user} />
+          </div>
+
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-lg shadow mb-4 p-4">
+              <div className="flex gap-4">
+                <ProfilePicture size="sm" />
+                <button className="flex-1 text-left px-4 py-2.5 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200">
+                  Start a post
+                </button>
+              </div>
+            </div>
+
+            {posts.map(post => (
+              <Post key={post.id} />
+            ))}
+          </div>
+
+          <div className="lg:col-span-1">
+            <Sidebar />
+          </div>
         </div>
       </main>
 
-      {/* Footer */}
       <Footer />
     </div>
   );

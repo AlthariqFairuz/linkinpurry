@@ -10,7 +10,7 @@ import Navigation from '@/components/ui/navigation';
 
 export default function Register() {
   const [username, setUsername] = useState('');
-  const [name, setName] = useState('');
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -27,7 +27,7 @@ export default function Register() {
         },
         body: JSON.stringify({ 
           username, 
-          name, 
+          fullName, 
           email, 
           password,
           confirmPassword
@@ -94,16 +94,16 @@ export default function Register() {
                 </div>
 
                 <div className="space-y-2">
-                  <label htmlFor="name" className="text-sm font-medium text-gray-700">
+                  <label htmlFor="fullName" className="text-sm font-medium text-gray-700">
                     Full name
                   </label>
                   <Input
-                    id="name"
+                    id="fullName"
                     type="text"
                     required
                     className="w-full"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
                   />
                 </div>
 
