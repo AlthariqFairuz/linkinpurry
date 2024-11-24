@@ -4,7 +4,7 @@ import { ProfilePicture } from './profilephoto';
 import { Input } from '@/components/ui/input';
 import { useState } from "react";
 
-export const Navbar = ({ onLogout }: NavbarProps) => {
+export const Navbar = ({ onLogout, onProfile, onLogo }: NavbarProps) => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
 
@@ -21,7 +21,9 @@ export const Navbar = ({ onLogout }: NavbarProps) => {
             {/* Left Section */}
             <div className="flex items-center gap-2 sm:gap-8 flex-1">
               {/* Logo */}
-              <div className="w-8 h-8 rounded flex-shrink-0">
+              <div className="w-8 h-8 rounded flex-shrink-0"
+                onClick={onLogo}
+              >
                 <img src="/linkedin.svg" alt="Logo" className="w-full h-full object-contain" />
               </div>
               
@@ -65,7 +67,9 @@ export const Navbar = ({ onLogout }: NavbarProps) => {
                 </div>
                  {/* Profile Section */}
                 <div className="h-8 w-px bg-gray-200 mx-2"></div>
-                <div className="inline-flex flex-col items-center p-2 hover:text-gray-900 text-gray-500 cursor-pointer relative group">
+                <div className="inline-flex flex-col items-center p-2 hover:text-gray-900 text-gray-500 cursor-pointer relative group"
+                  onClick={onProfile}
+                >
                   <ProfilePicture size="sm" />
                   <span className="text-xs mt-0.5">Me</span>
                   <div className="absolute bottom-0 left-0 w-full h-0.5 bg-black transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
@@ -107,7 +111,9 @@ export const Navbar = ({ onLogout }: NavbarProps) => {
                   <span>Bookmarks</span>
                 </div>
                  {/* Profile */}
-                <div className="flex items-center px-4 py-2 text-gray-500 hover:text-gray-900 hover:bg-gray-50">
+                <div className="flex items-center px-4 py-2 text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                  onClick={onProfile}
+                >
                   <ProfilePicture size="sm" />
                   <span className="ml-3">Profile</span>
                 </div>

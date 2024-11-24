@@ -43,9 +43,21 @@ export default function Home() {
     }
   };
 
+  const handleProfile = async () => {
+    try {
+      navigate('/profile', {
+        state: {
+          message: 'Profile successful!'
+        }
+      });
+    } catch (error) {
+      console.error('Profile error:', error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 pb-[68px]">
-      <Navbar onLogout={handleLogout} />
+      <Navbar onLogout={handleLogout} onProfile={handleProfile}/>
 
       <main className="pt-20 pb-8">
         <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-4 gap-6">

@@ -4,8 +4,16 @@ import { getCookie, setCookie } from 'hono/cookie'
 import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../db/connections.js';
+import { PrismaClient } from '@prisma/client';
 
 const auth = new Hono();
+
+const userModel = {
+  fullName: true,
+  workHistory: true,
+  skills: true,
+  profilePhotoPath: true,
+} satisfies PrismaClient.User;
 
 // Helper function to generate JWT with exactly 1 hour TTL
 const generateToken = (user: { id: bigint; email: string; username: string; fullName: string | null }) => {
@@ -217,6 +225,112 @@ auth.post('/login', async (c) => {
       message: 'Login failed', 
       body: null 
     }, 500);
+  }
+});
+
+auth.get('/profile/:id', async (c) => {
+  try {
+    const userId = c.req.param('id');
+
+    const user = await prisma.user.findUnique({ 
+      where: { id: userId },
+      select: userModel,
+    });
+
+    if (!user) {
+      return c.json({ 
+        success: false, 
+        message: 'Invalid user',
+        body: null 
+      }, 401);
+    }
+
+    const token = getCookie(c, 'jwt');
+    if (!token) {
+      return c.json({
+        success: true,
+        message: 'Public profile',
+        body: {
+          user
+        }
+      });
+    }
+
+    const decoded = await verifyToken(token);
+    
+    // Check if token is expired
+    if (decoded.exp * 1000 < Date.now()) {
+      return c.json({
+        success: true,
+        message: 'Public profile',
+        body: {
+          user
+        }
+      });
+    }
+
+    return c.json({
+      success: true,
+      message: 'Owner profile',
+      body: {
+        user
+      }
+    });
+  } catch (error) {
+    removeTokenCookie(c);
+    return c.json({ 
+      success: false, 
+      message: 'Invalid token', 
+      body: null 
+    }, 401);
+  }
+});
+
+auth.get('/profile', async (c) => {
+  try {
+    const token = getCookie(c, 'jwt');
+    
+    if (!token) {
+      return c.json({ success: false, 
+        message: 'No token found', 
+        body: null 
+      }, 401);
+    }
+
+    const decoded = await verifyToken(token);
+    
+    // Check if token is expired
+    if (decoded.exp * 1000 < Date.now()) {
+      removeTokenCookie(c);
+      return c.json({ 
+        success: false, 
+        message: 'Token expired', 
+        body: null 
+      }, 401);
+    }
+
+    var userId = decoded.userId;
+    const user = await prisma.user.findUnique({ 
+      where: { id: userId },
+      select: userModel,
+    });
+
+    console.log(user);
+
+    return c.json({
+      success: true,
+      message: 'Owner profile',
+      body: {
+        user
+      }
+    });
+  } catch (error) {
+    removeTokenCookie(c);
+    return c.json({ 
+      success: false, 
+      message: 'Invalid token', 
+      body: null 
+    }, 401);
   }
 });
 
