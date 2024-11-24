@@ -4,6 +4,10 @@ CREATE TABLE "users" (
   username varchar(255) NOT NULL UNIQUE,
   email varchar(255) NOT NULL UNIQUE,
   password_hash varchar(255) NOT NULL,
+  full_name varchar(255),
+  work_history TEXT,
+  skills TEXT,
+  profile_photo_path varchar(255) NOT NULL,
   created_at timestamptz NOT NULL DEFAULT NOW(),
   updated_at timestamptz NOT NULL,
   PRIMARY KEY (id)
