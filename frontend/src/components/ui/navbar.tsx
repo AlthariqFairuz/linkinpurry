@@ -1,5 +1,4 @@
-import { Users, MessageSquare, Bookmark, Menu, Search, Home } from 'lucide-react';
-import { ProfilePicture } from './profilephoto';
+import { Users, MessageSquare, Bookmark, Menu, Search, Home, User } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useState } from "react";
 import { useNavigate } from 'react-router-dom';
@@ -115,18 +114,21 @@ export const Navbar = () => {
                 </div>
                  {/* Profile Section */}
                 <div className="h-8 w-px bg-gray-200 mx-2"></div>
+
                 <div className="inline-flex flex-col items-center p-2 hover:text-gray-900 text-gray-500 cursor-pointer relative group"
-                  onClick={handleProfile}>
-                    <ProfilePicture size="sm" />
-                    <span className="text-xs mt-0.5">Me</span>
-                  <div className="absolute bottom-0 left-0 w-full h-0.5 bg-black transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
-                </div>
-                <Button
-                  variant="default"
-                  onClick={handleLogout}>
-                  Logout
-                </Button>
+                onClick={handleProfile}>
+                  <User className="w-6 h-6" strokeWidth={1.5} />
+                  <span className="text-xs mt-0.5">Me</span>
+                <div className="absolute bottom-0 left-0 w-full h-0.5 bg-black transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
               </div>
+              <Button
+                variant="default"
+                onClick={handleLogout}
+                className="mx-3"
+                >
+                Logout
+              </Button>
+            </div>
             </div>
              {/* Mobile Menu Button */}
             <div className="sm:hidden flex items-center">
@@ -165,10 +167,10 @@ export const Navbar = () => {
                 </div>
                  {/* Profile */}
                  <div className="flex items-center px-4 py-2 text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-                    onClick={handleProfile}>
-                      <ProfilePicture size="sm" className="mr-3" />
-                      <span>Me</span>
-                  </div>
+                  onClick={handleProfile}>
+                  <User className="w-6 h-6 mr-3" strokeWidth={1.5} />
+                  <span>Me</span>
+                </div>
                  {/* Mobile Logout */}
                 <div className="px-4 py-2">
                   <Button
