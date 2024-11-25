@@ -110,7 +110,6 @@ auth.get('/verify', async (c) => {
   }
 });
 
-// Add logout endpoint
 auth.post('/logout', (c) => {
   removeTokenCookie(c);
   return c.json({ 
@@ -330,6 +329,14 @@ auth.put('/profile/:id', async (c) => {
       }, 401);
     }
 
+    if (!username) {
+      return c.json({ 
+        success: false, 
+        message: 'Invalid username',
+        body: null 
+      }, 400);
+    }
+
     const existingUser = await prisma.user.findFirst({
       where: { 
         username,
@@ -368,90 +375,6 @@ auth.put('/profile/:id', async (c) => {
       body: error
     }, 500);
   }
-});
-
-auth.post('/profile/:id/photo', async (c) => {
-  try {
-    const token = getCookie(c, 'jwt');
-    if (!token) {
-      return c.json({ 
-        success: false, 
-        message: 'No token found', 
-        body: null 
-      }, 401);
-    }
-    const decoded = await verifyToken(token);
-    const userId = BigInt(decoded.userId);
-
-    const formData = await c.req.formData();
-   const file = formData.get('photo') as File;
-   
-   if (!file) {
-     return c.json({ 
-       success: false, 
-       message: 'No file uploaded', 
-       body: null 
-     }, 400);
-   }
-    // Validate file type
-   const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
-   if (!allowedTypes.includes(file.type)) {
-     return c.json({ 
-       success: false, 
-       message: 'Invalid file type. Only JPEG, PNG and WebP are allowed.', 
-       body: null 
-     }, 400);
-   }
-    // Create unique filename
-   const fileExt = extname(file.name) || '.webp';
-   const fileName = `${createId()}_${userId}${fileExt}`;
-   
-   try {
-     // Update the path to be absolute and ensure it exists
-     const uploadDir = join(process.cwd(), '..', 'frontend', 'public', 'images');
-     
-     // Log the path to verify it's correct
-     console.log('Upload directory:', uploadDir);
-     
-     // Create directory if it doesn't exist
-     await mkdir(uploadDir, { recursive: true });
-      const arrayBuffer = await file.arrayBuffer();
-     const buffer = Buffer.from(arrayBuffer);
-     const filePath = join(uploadDir, fileName);
-     
-     // Log the full file path
-     console.log('Saving file to:', filePath);
-     
-     await writeFile(filePath, buffer);
-     console.log('File written successfully');
-     
-     // Store only the relative path in database
-     const profilePhotoPath = `/images/${fileName}`;
-     await prisma.user.update({
-       where: { id: userId },
-       data: { profilePhotoPath }
-     });
-      return c.json({
-       success: true,
-       message: 'Photo uploaded successfully',
-       body: { profilePhotoPath }
-     });
-   } catch (fileError) {
-     console.error('File system error:', fileError);
-     return c.json({ 
-       success: false, 
-       message: 'Failed to save file to disk', 
-       body: fileError 
-     }, 500);
-   }
- } catch (error) {
-   console.error('Upload error:', error);
-   return c.json({ 
-     success: false, 
-     message: 'Failed to upload photo', 
-     body: error 
-   }, 500);
- }
 });
 
 auth.get('/connection-status/:id', async (c) => {
@@ -538,7 +461,7 @@ auth.get('/network', async (c) => {
     }
     
     const decoded = await verifyToken(token);
-    const userId = decoded.userId;
+    const userId = BigInt(decoded.userId);
 
     const user = await prisma.user.findUnique({ 
       where: { id: userId }
@@ -569,7 +492,7 @@ auth.get('/network', async (c) => {
       where: {
         id: {
           not: userId,
-          notIn: connected
+          notIn: connected.map(conn => conn.toId)
         },
       },
       select: {

@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { getImageUrl } from '@/utils/config';
 
 export default function Profile() {
@@ -36,7 +36,9 @@ export default function Profile() {
     workHistory: false
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  
+  const { toast } = useToast();
+
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setSelectedFile(e.target.files[0]);
@@ -44,36 +46,7 @@ export default function Profile() {
   };
 
   const handlePhotoUpload = async () => {
-    if (!selectedFile || !userData) return;
-    const formData = new FormData();
-    formData.append('photo', selectedFile);
-     try {
-      const response = await fetch(`http://localhost:3000/api/profile/${userData.id}/photo`, {
-        method: 'POST',
-        credentials: 'include',
-        body: formData,
-      });
-       const data = await response.json();
-      if (response.ok) {
-        setUserData(prev => prev ? { 
-          ...prev, 
-          profilePhotoPath: data.body.profilePhotoPath 
-        } : null);
-        toast({
-          title: "Success",
-          description: "Profile photo updated successfully",
-          variant: "success",
-        });
-      } else {
-        throw new Error(data.message);
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update profile photo",
-        variant: "destructive",
-      });
-    }
+   
   };
   
   useEffect(() => {
@@ -99,7 +72,7 @@ export default function Profile() {
     };
 
     fetchUserData();
-  }, []);
+  }, [toast]);
   
   const handleUpdateField = async (field: keyof User, value: string) => {
     if (!userData) return;
@@ -152,6 +125,7 @@ export default function Profile() {
       </div>
     );
   }
+
 
   return (
     <div className="min-h-screen bg-gray-100 pb-[68px]">

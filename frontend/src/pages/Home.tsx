@@ -62,7 +62,7 @@ export default function Home() {
     }
   ];
 
-  console.log(userData);
+  // console.log(userData);
   
   if (isLoading) {
     return (

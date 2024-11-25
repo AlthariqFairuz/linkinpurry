@@ -60,7 +60,6 @@ export default function AppRoutes() {
         } />
 
         {/* Profile Route */}
-
         <Route path="/profile" element={
           <PrivateRoute>
             <Profile />
@@ -71,7 +70,7 @@ export default function AppRoutes() {
           <PublicRoute>
             <ProfileOthers />
           </PublicRoute>
-        } />
+        }/>
 
         {/* Protected Routes */}
         <Route path="/home" element={
