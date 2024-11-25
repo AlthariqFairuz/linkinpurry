@@ -1,10 +1,8 @@
-import { useNavigate } from 'react-router-dom';
+
 import Footer from '@/components/ui/footer';
 import { ProfileCard } from '@/components/ui/profilecard';
-import { Post } from '@/components/ui/post';
 import { Sidebar } from '@/components/ui/sidebar';
 import { Navbar } from '@/components/ui/navbar';
-import { ProfilePicture } from '@/components/ui/profilephoto';
 import { getUserId } from '@/api/getUserId';
 import { fetchUser } from '@/api/fetchUser';
 import { useEffect, useState } from 'react';
@@ -12,7 +10,6 @@ import { User } from '@/types/User';
 import { NetworkCard } from '@/components/ui/networkcard';
 
 export default function Network() {
-  const navigate = useNavigate();
   const [userData, setUserData] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -42,32 +39,6 @@ export default function Network() {
     fetchUserData();
   }, []);
 
-  const handleLogout = async () => {
-    try {
-      await fetch('http://localhost:3000/api/logout', {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-      
-      navigate('/login', {
-        state: {
-          message: 'Logout successful!'
-        }
-      });
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-  };
-
-  console.log(userData);
-
-  const handleProfile = () => {
-    navigate('/profile');
-  }
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -86,7 +57,7 @@ export default function Network() {
 
   return (
     <div className="min-h-screen bg-gray-100 pb-[68px]">
-      <Navbar onLogout={handleLogout} onProfile={handleProfile} isProfilePage={false}/>
+      <Navbar />
 
       <main className="pt-20 pb-8">
         <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-4 gap-6">
