@@ -454,4 +454,149 @@ auth.post('/profile/:id/photo', async (c) => {
  }
 });
 
+auth.get('/connection-status/:id', async (c) => {
+  try {
+    const toId = BigInt(c.req.param('id'));
+
+    const user = await prisma.user.findUnique({ 
+      where: { id: toId }
+    });
+
+    if (!user) {
+      return c.json({ 
+        success: false, 
+        message: 'Invalid user',
+        body: null 
+      }, 401);
+    }
+
+    const token = getCookie(c, 'jwt');
+
+    if (!token) {
+      return c.json({ success: false, 
+        message: 'No token found', 
+        body: null 
+      }, 401);
+    }
+    
+    const decoded = await verifyToken(token);
+    const userId = decoded.userId;
+
+    if (userId == toId) {
+      return c.json({
+        success: true,
+        message: 'Self connection',
+        body: {
+          connected: true
+        }
+      });
+    }
+
+    const connection = await prisma.connection.findFirst({ 
+      where: {
+        OR: [
+          {
+            fromId: userId,
+            toId: toId
+          },
+          {
+            toId: userId,
+            fromId: toId
+          }
+        ]
+      }
+    });
+
+    return c.json({
+      success: true,
+      message: 'Connection-status success',
+      body: {
+        connected: connection !== null
+      }
+    });
+
+  } catch (error) {
+    console.log(error);
+    removeTokenCookie(c);
+    return c.json({ 
+      success: false, 
+      message: 'Invalid token', 
+      body: error
+    }, 401);
+  }
+});
+
+auth.get('/network', async (c) => {
+  try {
+    const token = getCookie(c, 'jwt');
+
+    if (!token) {
+      return c.json({ success: false, 
+        message: 'No token found', 
+        body: null 
+      }, 401);
+    }
+    
+    const decoded = await verifyToken(token);
+    const userId = decoded.userId;
+
+    const user = await prisma.user.findUnique({ 
+      where: { id: userId }
+    });
+
+    if (!user) {
+      return c.json({ 
+        success: false, 
+        message: 'Invalid user',
+        body: null 
+      }, 401);
+    }
+    
+    const connected = await prisma.connection.findMany({
+      where: {
+        OR: [
+          {
+            fromId: userId
+          },
+          {
+            toId: userId
+          }
+        ]
+      }
+    });
+    
+    const connection = await prisma.user.findMany({ 
+      where: {
+        id: {
+          not: userId,
+          notIn: connected
+        },
+      },
+      select: {
+        fullName: true,
+        skills: true,
+        workHistory: true,
+        profilePhotoPath: true,
+      }
+    });
+
+    return c.json({
+      success: true,
+      message: 'Connection-status success',
+      body: {
+        connection: connection
+      }
+    });
+
+  } catch (error) {
+    console.log(error);
+    removeTokenCookie(c);
+    return c.json({ 
+      success: false, 
+      message: 'Invalid token', 
+      body: error
+    }, 401);
+  }
+});
+
 export default auth;

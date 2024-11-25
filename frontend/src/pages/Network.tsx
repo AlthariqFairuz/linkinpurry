@@ -8,13 +8,15 @@ import { fetchUser } from '@/api/fetchUser';
 import { useEffect, useState } from 'react';
 import { User } from '@/types/User';
 import { NetworkCard } from '@/components/ui/networkcard';
+import { fetchNetwork } from '@/api/fetchNetwork';
 
 export default function Network() {
   const [userData, setUserData] = useState<User | null>(null);
+  const [userNetwork, setUserNetwork] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUserData = async () => {
+    const fetchUserDataAndNetwork = async () => {
       try {
         setIsLoading(true);
         // First get the user ID
@@ -29,6 +31,13 @@ export default function Network() {
         if (user) {
           setUserData(user);
         }
+
+        // Also fetch network for user
+        const network = await fetchNetwork();
+        if (network) {
+          setUserNetwork(network);
+        }
+
       } catch (error) {
         console.error('Fetch user error:', error);
       } finally {
@@ -36,7 +45,7 @@ export default function Network() {
       }
     };
 
-    fetchUserData();
+    fetchUserDataAndNetwork();
   }, []);
 
   if (isLoading) {
@@ -68,10 +77,9 @@ export default function Network() {
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow mb-4 p-4">
               <div className="flex flex-wrap justify-content-space-between gap-4">
-                 <NetworkCard fullName={userData.fullName} username= {userData.username} email={userData.email} profilePhotoPath={userData.profilePhotoPath}/>
-                 <NetworkCard fullName={userData.fullName} username= {userData.username} email={userData.email} profilePhotoPath={userData.profilePhotoPath}/>
-                 <NetworkCard fullName={userData.fullName} username= {userData.username} email={userData.email} profilePhotoPath={userData.profilePhotoPath}/>
-                 <NetworkCard fullName={userData.fullName} username= {userData.username} email={userData.email} profilePhotoPath={userData.profilePhotoPath}/>
+                {userNetwork.connection.map(user => (
+                  <NetworkCard fullName={user.fullName} username={user.username} profilePhotoPath={user.profilePhotoPath} />
+                ))}
               </div>
             </div>
           </div>

@@ -1,8 +1,8 @@
 import { UserPlus } from 'lucide-react';
 import { ProfilePicture } from "./profilephoto";
-import ProfileCardProps from '@/types/ProfileCard';
+import NetworkCardProps from '@/types/NetworkCard';
 
-export const NetworkCard = ({ username, email, fullName, profilePhotoPath }: ProfileCardProps) => {
+export const NetworkCard = ({ username, fullName, profilePhotoPath }: NetworkCardProps) => {
     return (
       <div style={{flex: "0 1 calc(34% - 1em)"}} className="bg-white rounded-lg shadow mb-4">
         <img 
@@ -16,7 +16,6 @@ export const NetworkCard = ({ username, email, fullName, profilePhotoPath }: Pro
           </div>
           <div className="mb-4">
             <h2 className="text-gray-900 text-xl font-bold">{fullName}</h2>
-            <p className="text-gray-600">{email}</p>
             <p className="text-sm text-gray-500 mt-1">{username}</p>
           </div>
           
