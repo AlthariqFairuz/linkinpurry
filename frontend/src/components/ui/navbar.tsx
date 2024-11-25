@@ -107,15 +107,15 @@ export const Navbar = () => {
                   <div className="absolute bottom-0 left-0 w-full h-0.5 bg-black transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
                 </div>
                  {/* Bookmarks */}
-                <div className="inline-flex flex-col items-center p-2 hover:text-gray-900 text-gray-500 cursor-pointer relative group">
+                {/* <div className="inline-flex flex-col items-center p-2 hover:text-gray-900 text-gray-500 cursor-pointer relative group">
                   <Bookmark className="w-6 h-6" strokeWidth={1.5} />
                   <span className="text-xs mt-0.5">Bookmarks</span>
                   <div className="absolute bottom-0 left-0 w-full h-0.5 bg-black transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
-                </div>
+                </div> */}
                  {/* Profile Section */}
                 <div className="h-8 w-px bg-gray-200 mx-2"></div>
 
-                <div className="inline-flex flex-col items-center p-2 hover:text-gray-900 text-gray-500 cursor-pointer relative group"
+                <div className="inline-flex flex-col items-center p-2 pr-3 hover:text-gray-900 text-gray-500 cursor-pointer relative group"
                 onClick={handleProfile}>
                   <User className="w-6 h-6" strokeWidth={1.5} />
                   <span className="text-xs mt-0.5">Me</span>

@@ -10,6 +10,7 @@ import { fetchUser } from '@/api/fetchUser';
 import { useEffect, useState } from 'react';
 import { User } from '@/types/User';
 import { useToast } from "@/hooks/use-toast";
+import { getImageUrl } from '@/utils/config';
 
 export default function Home() {
   const { toast } = useToast();
@@ -77,7 +78,12 @@ export default function Home() {
       <main className="pt-20 pb-8">
         <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-4 gap-6">
           <div className="lg:col-span-1">
-            <ProfileCard fullName={userData.fullName} username= {userData.username} email={userData.email} profilePhotoPath={userData.profilePhotoPath}/>
+            <ProfileCard 
+              fullName={userData.fullName} 
+              username={userData.username} 
+              email={userData.email} 
+              profilePhotoPath={getImageUrl(userData.profilePhotoPath)}
+            />
           </div>
 
           <div className="lg:col-span-2">

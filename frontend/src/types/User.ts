@@ -1,4 +1,5 @@
 export interface User {
+    id: string | null;
     email: string;
     username: string;
     fullName: string | null;
@@ -12,6 +13,7 @@ export interface ApiResponse {
     success: boolean;
     message: string;
     body: {
+      id: string | null;
       email: string;
       username: string;
       fullName: string | null;

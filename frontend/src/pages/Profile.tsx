@@ -1,4 +1,3 @@
-import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import Footer from '@/components/ui/footer';
 import { Navbar } from '@/components/ui/navbar';
@@ -25,19 +24,58 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from '@/hooks/use-toast';
+import { getImageUrl } from '@/utils/config';
 
 export default function Profile() {
-  const navigate = useNavigate();
   const [userData, setUserData] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState({
     fullName: false,
-    email: false,
     username: false,
     skills: false,
     workHistory: false
   });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedFile(e.target.files[0]);
+    }
+  };
 
+  const handlePhotoUpload = async () => {
+    if (!selectedFile || !userData) return;
+    const formData = new FormData();
+    formData.append('photo', selectedFile);
+     try {
+      const response = await fetch(`http://localhost:3000/api/profile/${userData.id}/photo`, {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      });
+       const data = await response.json();
+      if (response.ok) {
+        setUserData(prev => prev ? { 
+          ...prev, 
+          profilePhotoPath: data.body.profilePhotoPath 
+        } : null);
+        toast({
+          title: "Success",
+          description: "Profile photo updated successfully",
+          variant: "success",
+        });
+      } else {
+        throw new Error(data.message);
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update profile photo",
+        variant: "destructive",
+      });
+    }
+  };
+  
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -61,29 +99,52 @@ export default function Profile() {
     };
 
     fetchUserData();
-  }, [navigate]);
+  }, []);
   
   const handleUpdateField = async (field: keyof User, value: string) => {
+    if (!userData) return;
+    
     try {
-      const response = await fetch('http://localhost:3000/api/profile/update', {
+      const updateData = {
+        fullName: userData.fullName,
+        username: userData.username,
+        skills: userData.skills,
+        workHistory: userData.workHistory,
+        // Override the field being updated
+        [field]: value
+      };
+       const response = await fetch(`http://localhost:3000/api/profile/${userData.id}`, {
         method: 'PUT',
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          [field]: value
-        })
+        body: JSON.stringify(updateData)
       });
-       if (response.ok) {
+       const data = await response.json();
+      
+      if (response.ok) {
         setUserData(prev => prev ? { ...prev, [field]: value } : null);
         setIsEditing(prev => ({ ...prev, [field]: false }));
+        
+        toast({
+          title: "Success",
+          description: "Profile updated successfully",
+          variant: "success",
+        });
+      } else {
+        throw new Error(data.message);
       }
     } catch (error) {
       console.error('Update error:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update profile",
+        variant: "destructive",
+      });
     }
   };
-
+  
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -102,23 +163,38 @@ export default function Profile() {
               <CardTitle>Profile Photo</CardTitle>
             </CardHeader>
             <CardContent className="flex items-center space-x-4">
-              <ProfilePicture size="lg" src={userData.profilePhotoPath} />
+              <ProfilePicture size="lg" src={getImageUrl(userData?.profilePhotoPath)} />
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="outline">Change Photo</Button>
+                  <Button variant="outline" onClick={handlePhotoUpload}>Change Photo</Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
                     <AlertDialogTitle>Update Profile Photo</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Choose a new photo to update your profile picture.
+                          Choose a new photo to update your profile picture.
+                          {selectedFile && (
+                            <span className="block mt-2 text-sm text-green-600">
+                              Selected: {selectedFile.name}
+                          </span>
+                        )}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
-                  <Input type="file" accept="image/*" />
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction>Update</AlertDialogAction>
-                  </AlertDialogFooter>
+                    <Input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleFileChange}
+                      className="mt-2"
+                    />
+                    <AlertDialogFooter>
+                      <AlertDialogCancel onClick={() => setSelectedFile(null)}>Cancel</AlertDialogCancel>
+                      <AlertDialogAction 
+                        onClick={handlePhotoUpload}
+                        disabled={!selectedFile}
+                      >
+                        Upload Photo
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
             </CardContent>
@@ -131,7 +207,6 @@ export default function Profile() {
             <CardContent className="space-y-4">
               {Object.entries({
                 fullName: 'Full Name',
-                email: 'Email',
                 username: 'Username'
               }).map(([field, label]) => (
                 <div key={field} className="space-y-2">
@@ -151,6 +226,7 @@ export default function Profile() {
                             field as keyof User, 
                             String(userData?.[field as keyof User] || '')
                           )}
+                          variant="default"
                           size="sm"
                         >
                           Save
@@ -191,7 +267,7 @@ export default function Profile() {
                     className="min-h-[100px]"
                   />
                   <Button 
-                    variant='iconLight'
+                    variant='default'
                     onClick={() => handleUpdateField('skills', userData?.skills || '')}
                     size="sm"
                   >
@@ -202,7 +278,7 @@ export default function Profile() {
                 <div className="flex items-center justify-between">
                   <p className="whitespace-pre-wrap">{userData?.skills}</p>
                   <Button
-                    variant="iconLight"
+                    variant="default"
                     size="sm"
                     onClick={() => setIsEditing(prev => ({ ...prev, skills: true }))}
                   >
@@ -231,6 +307,7 @@ export default function Profile() {
                   <Button 
                     onClick={() => handleUpdateField('workHistory', userData?.workHistory || '')}
                     size="sm"
+                    variant="default"
                   >
                     Save
                   </Button>
@@ -239,7 +316,7 @@ export default function Profile() {
                 <div className="flex items-center justify-between">
                   <p className="whitespace-pre-wrap">{userData?.workHistory}</p>
                   <Button
-                    variant="ghost"
+                    variant="default"
                     size="sm"
                     onClick={() => setIsEditing(prev => ({ ...prev, workHistory: true }))}
                   >

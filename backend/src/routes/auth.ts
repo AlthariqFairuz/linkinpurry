@@ -4,6 +4,8 @@ import { getCookie, setCookie } from 'hono/cookie'
 import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../db/connections.js';
+import { mkdir, writeFile } from 'fs/promises';
+import { join, extname } from 'path';
 
 const auth = new Hono();
 
@@ -298,6 +300,158 @@ auth.get('/profile/:id', async (c) => {
       body: error
     }, 401);
   }
+});
+
+auth.put('/profile/:id', async (c) => {
+  try {
+    const token = getCookie(c, 'jwt');
+
+    if (!token) {
+      return c.json({ 
+        success: false, 
+        message: 'No token found', 
+        body: null 
+      }, 401);
+    }
+
+    const { fullName, username, skills, workHistory } = await c.req.json();
+    const decoded = await verifyToken(token);
+    const userId = BigInt(decoded.userId);
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId }
+    });
+
+    if (!user) {
+      return c.json({ 
+        success: false, 
+        message: 'Invalid user',
+        body: null 
+      }, 401);
+    }
+
+    const existingUser = await prisma.user.findFirst({
+      where: { 
+        username,
+        id: { not: userId }
+      } 
+    });
+
+    if (existingUser) {
+      return c.json({ 
+        success: false, 
+        message: 'Username already exists',
+        body: null 
+      }, 400);
+    }
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        fullName,
+        username,
+        skills,
+        workHistory
+      }
+    });
+
+    return c.json({
+      success: true,
+      message: 'Update successful',
+      body: null
+    });
+
+  } catch (error) {
+    return c.json({ 
+      success: false, 
+      message: 'Update failed', 
+      body: error
+    }, 500);
+  }
+});
+
+auth.post('/profile/:id/photo', async (c) => {
+  try {
+    const token = getCookie(c, 'jwt');
+    if (!token) {
+      return c.json({ 
+        success: false, 
+        message: 'No token found', 
+        body: null 
+      }, 401);
+    }
+    const decoded = await verifyToken(token);
+    const userId = BigInt(decoded.userId);
+
+    const formData = await c.req.formData();
+   const file = formData.get('photo') as File;
+   
+   if (!file) {
+     return c.json({ 
+       success: false, 
+       message: 'No file uploaded', 
+       body: null 
+     }, 400);
+   }
+    // Validate file type
+   const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+   if (!allowedTypes.includes(file.type)) {
+     return c.json({ 
+       success: false, 
+       message: 'Invalid file type. Only JPEG, PNG and WebP are allowed.', 
+       body: null 
+     }, 400);
+   }
+    // Create unique filename
+   const fileExt = extname(file.name) || '.webp';
+   const fileName = `${createId()}_${userId}${fileExt}`;
+   
+   try {
+     // Update the path to be absolute and ensure it exists
+     const uploadDir = join(process.cwd(), '..', 'frontend', 'public', 'images');
+     
+     // Log the path to verify it's correct
+     console.log('Upload directory:', uploadDir);
+     
+     // Create directory if it doesn't exist
+     await mkdir(uploadDir, { recursive: true });
+      const arrayBuffer = await file.arrayBuffer();
+     const buffer = Buffer.from(arrayBuffer);
+     const filePath = join(uploadDir, fileName);
+     
+     // Log the full file path
+     console.log('Saving file to:', filePath);
+     
+     await writeFile(filePath, buffer);
+     console.log('File written successfully');
+     
+     // Store only the relative path in database
+     const profilePhotoPath = `/images/${fileName}`;
+     await prisma.user.update({
+       where: { id: userId },
+       data: { profilePhotoPath }
+     });
+      return c.json({
+       success: true,
+       message: 'Photo uploaded successfully',
+       body: { profilePhotoPath }
+     });
+   } catch (fileError) {
+     console.error('File system error:', fileError);
+     return c.json({ 
+       success: false, 
+       message: 'Failed to save file to disk', 
+       body: fileError 
+     }, 500);
+   }
+ } catch (error) {
+   console.error('Upload error:', error);
+   return c.json({ 
+     success: false, 
+     message: 'Failed to upload photo', 
+     body: error 
+   }, 500);
+ }
 });
 
 export default auth;

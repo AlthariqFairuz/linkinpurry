@@ -1,3 +1,4 @@
+import { getImageUrl } from "@/utils/config";
 import { ProfilePicture } from "./profilephoto";
 import ProfileCardProps from '@/types/ProfileCard';
 
@@ -5,13 +6,13 @@ export const ProfileCard = ({ username, email, fullName, profilePhotoPath }: Pro
     return (
       <div className="bg-white rounded-lg shadow mb-4">
         <img 
-         src="/images/default-background.webp" 
+         src={getImageUrl('/images/default-background.webp')} 
          className="h-24 w-full rounded-t-lg object-cover" 
          alt="Background"
        />
         <div className="px-4 pb-4">
           <div className="relative -mt-12 mb-4">
-            <ProfilePicture size="lg" src={profilePhotoPath} />
+            <ProfilePicture size="lg" src={getImageUrl(profilePhotoPath)} />
           </div>
           <div className="mb-4">
             <h2 className="text-gray-900 text-xl font-bold">{fullName}</h2>
