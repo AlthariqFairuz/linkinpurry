@@ -8,7 +8,6 @@ services:
       volumes:
           - ./frontend:/app/frontend
           - /app/frontend/node_modules
-          - ./frontend/src/assets:/app/frontend/src/assets
       environment:
         - CHOKIDAR_USEPOLLING=true  # Enable polling for hot reload
       depends_on:

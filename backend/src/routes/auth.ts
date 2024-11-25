@@ -159,7 +159,7 @@ auth.post('/register', async (c) => {
         fullName,
         email,
         passwordHash: hashedPassword,
-        profilePhotoPath: '/app/frontend/src/assets/default.jpg'
+        profilePhotoPath: '/images/default.webp'
       }
     });
 

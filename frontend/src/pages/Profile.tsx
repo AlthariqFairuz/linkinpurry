@@ -42,12 +42,9 @@ export default function Profile() {
       try {
         setIsLoading(true);
         const id = await getUserId();
-        if (!id) {
-          navigate('/login');
-          return;
-        }
         
         const user = await fetchUser(id);
+
         if (user) {
           setUserData(user);
         }
@@ -87,7 +84,7 @@ export default function Profile() {
 
   const handleUpdateField = async (field: keyof User, value: string) => {
     try {
-      const response = await fetch('http://localhost:3000/api/user/update', {
+      const response = await fetch('http://localhost:3000/api/profile/update', {
         method: 'PUT',
         credentials: 'include',
         headers: {

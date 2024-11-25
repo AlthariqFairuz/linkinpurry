@@ -1,6 +1,6 @@
 import ProfilePictureProps from '@/types/ProfilePicture';
 
-export const ProfilePicture = ({ size = 'md', src = '/src/assets/default.jpg' }: ProfilePictureProps) => {
+export const ProfilePicture = ({ size = 'md', src = '/images/default.webp' }: ProfilePictureProps) => {
     const sizeClasses = {
       sm: 'w-10 h-10',
       md: 'w-16 h-16',

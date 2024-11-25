@@ -92,7 +92,7 @@ export default function Home() {
       <main className="pt-20 pb-8">
         <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-4 gap-6">
           <div className="lg:col-span-1">
-            <ProfileCard fullName={userData.fullName} username= {userData.username} email={userData.email} />
+            <ProfileCard fullName={userData.fullName} username= {userData.username} email={userData.email} profilePhotoPath={userData.profilePhotoPath}/>
           </div>
 
           <div className="lg:col-span-2">

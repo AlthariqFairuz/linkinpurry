@@ -14,7 +14,6 @@ RUN npm install
 
 # Set permission to 777, grant full access to the assets folder
 RUN mkdir -p /app/frontend/src/assets
-COPY ./src/assets /app/frontend/src/assets
 RUN chmod -R 777 /app/frontend/src/assets
 
 # Expose port 5173 
