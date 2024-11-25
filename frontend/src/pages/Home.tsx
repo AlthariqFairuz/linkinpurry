@@ -1,35 +1,47 @@
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Footer from '@/components/ui/footer';
 import { ProfileCard } from '@/components/ui/profilecard';
 import { Post } from '@/components/ui/post';
 import { Sidebar } from '@/components/ui/sidebar';
 import { Navbar } from '@/components/ui/navbar';
 import { ProfilePicture } from '@/components/ui/profilephoto';
-import { fetchUser } from '@/middleware/fetchUser';
-import { useEffect } from 'react';
-import { useState } from 'react';
-import { UserProfile, User } from '@/types/User';
+import { getUserId } from '@/api/getUserId';
+import { fetchUser } from '@/api/fetchUser';
+import { useEffect, useState } from 'react';
+import { User } from '@/types/User';
 
 export default function Home() {
   const navigate = useNavigate();
-  const { id } = useParams();
-  const [userData, setUserData] = useState<User | UserProfile>(null);
- 
-  useEffect(() => {
-   const loadUser = async () => {
-     try {
-       if (!id) return;
-       const fetchedUser = await fetchUser(id);
-       if (fetchedUser) {
-         setUserData(fetchedUser);
-       }
-     } catch (error) {
-       console.error('User error:', error);
-     }
-   };
-    loadUser();
- }, [id]);
+  const [userData, setUserData] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        setIsLoading(true);
+        // First get the user ID
+        const id = await getUserId();
+        if (!id) {
+          console.log('Failed to fetch user ID');
+          return;
+        }
+      
+        // Then fetch the user details using the ID
+        const user = await fetchUser(id);
+        if (user) {
+          setUserData(user);
+        }
+      } catch (error) {
+        console.error('Fetch user error:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+ 
   const posts = [
     {
       id: 1,
@@ -59,17 +71,19 @@ export default function Home() {
     }
   };
 
-  const handleProfile = async () => {
-    if (!userData?.id) {  
-      console.error('No user ID available');
-      return;
-    }
-    navigate(`/profile/${userData.id}`); 
-  };
-
-  console.log(id);
-
   console.log(userData);
+
+  const handleProfile = () => {
+    navigate('/profile');
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-gray-600">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 pb-[68px]">
@@ -78,7 +92,7 @@ export default function Home() {
       <main className="pt-20 pb-8">
         <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-4 gap-6">
           <div className="lg:col-span-1">
-            <ProfileCard username="Ai Hoshino Istri Eriq" email="aihoshino@gmail.com" fullName="Ai Hoshino Istri Eriq" />
+            <ProfileCard fullName={userData.fullName} username= {userData.username} email={userData.email} />
           </div>
 
           <div className="lg:col-span-2">

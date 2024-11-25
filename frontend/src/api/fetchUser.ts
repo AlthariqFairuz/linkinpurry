@@ -1,6 +1,6 @@
-import { UserProfile, ApiResponse, User } from '@/types/User';
+import {ApiResponse, User } from '@/types/User';
 
-export const fetchUser = async (userId: string): Promise<UserProfile | User> => {
+export const fetchUser = async (userId: string): Promise<User> => {
   try {
     const response = await fetch(`http://localhost:3000/api/profile/${userId}`, {
       credentials: 'include',

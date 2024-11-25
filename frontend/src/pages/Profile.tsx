@@ -26,14 +26,15 @@ export default function Profile() {
   };
 
   const handleHome = () => {
-      navigate('/');
+      navigate('/home');
   };
 
   return (
     <div className="min-h-screen bg-gray-100 pb-[68px]">
       <Navbar onLogout={handleLogout} onProfile={handleHome} isProfilePage={true}/>
        <main className="pt-20 pb-8">
-        coming soon ngabs profile
+        <div className='text-black'>coming soon ngabs profile</div>
+        
       </main>
        <Footer />
     </div>

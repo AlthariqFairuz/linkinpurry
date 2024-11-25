@@ -63,6 +63,17 @@ export default function AppRoutes() {
             <Profile />
           </PublicRoute>
         } />
+        <Route path="/profile" element={
+          <PrivateRoute>
+            <Profile />
+          </PrivateRoute>
+        } />
+
+        <Route path='/profile/:id' element={
+          <PublicRoute>
+            <Profile />
+          </PublicRoute>
+        } />
 
         {/* Protected Routes */}
         <Route path="/home" element={

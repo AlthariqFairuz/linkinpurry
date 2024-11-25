@@ -1,5 +1,4 @@
 export interface User {
-    id: string;
     email: string;
     username: string;
     fullName: string | null;
@@ -9,9 +8,6 @@ export interface User {
 }
 
 export interface UserProfile {
-    id?: string;
-    email?: string;
-    username?: string;
     fullName: string | null;
     skills: string[];
     workHistory: string[];
@@ -22,12 +18,22 @@ export interface ApiResponse {
     success: boolean;
     message: string;
     body: {
-      id?: string;
-      email?: string;
-      username?: string;
+      email: string | null;
+      username: string | null;
       fullName: string | null;
       skills: string[];
       workHistory: string[];
       profilePhotoPath: string;
     } | null;
 }
+
+export interface verifyResponse {
+    success: boolean;
+    message: string;
+    body: {
+      token: string;
+      id: string;
+      email: string;
+      fullName: string | null;
+    } | null;
+} 

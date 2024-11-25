@@ -93,6 +93,7 @@ auth.get('/verify', async (c) => {
       message: 'Token verified',
       body: {
         token,
+        id: decoded.userId,
         email: decoded.email,
         fullName: decoded.fullName
       }
@@ -244,7 +245,6 @@ auth.get('/profile/:id', async (c) => {
         success: true,
         message: 'Public Profile',
         body: {
-          id: user.id.toString(),
           fullName: user.fullName,
           skills: user.skills,
           workHistory: user.workHistory,
@@ -259,7 +259,6 @@ auth.get('/profile/:id', async (c) => {
         success: true,
         message: 'Owner profile',
         body: {
-          id: user.id.toString(),
           email: user.email,
           username: user.username,
           fullName: user.fullName,
@@ -275,7 +274,6 @@ auth.get('/profile/:id', async (c) => {
         success: true,
         message: 'Public Profile',
         body: {
-          id: user.id.toString(),
           fullName: user.fullName,
           skills: user.skills,
           workHistory: user.workHistory,
