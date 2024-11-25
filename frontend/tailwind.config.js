@@ -9,7 +9,16 @@ export default {
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
 			},
-			colors: {}
+			colors: {},
+			keyframes: {
+				ripple: {
+				  '0%': { transform: 'scale(0)', opacity: '0.5' },
+				  '100%': { transform: 'scale(4)', opacity: '0' },
+				},
+			},
+			animation: {
+				ripple: 'ripple 0.6s linear',
+			},
 		}
 	},
 	plugins: [require("tailwindcss-animate")],

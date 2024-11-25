@@ -1,1 +1,0 @@
-Ini sebenarnya ga dipake lagi karena udah dihandle prisma, cuman buat pajangan aja
