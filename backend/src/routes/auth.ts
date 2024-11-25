@@ -244,6 +244,7 @@ auth.get('/profile/:id', async (c) => {
         success: true,
         message: 'Public Profile',
         body: {
+          id: user.id.toString(),
           fullName: user.fullName,
           skills: user.skills,
           workHistory: user.workHistory,
@@ -274,6 +275,7 @@ auth.get('/profile/:id', async (c) => {
         success: true,
         message: 'Public Profile',
         body: {
+          id: user.id.toString(),
           fullName: user.fullName,
           skills: user.skills,
           workHistory: user.workHistory,

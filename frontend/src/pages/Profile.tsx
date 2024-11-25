@@ -1,11 +1,10 @@
-
 import { useNavigate } from 'react-router-dom';
 import Footer from '@/components/ui/footer';
 import { Navbar } from '@/components/ui/navbar';
 
 export default function Profile() {
   const navigate = useNavigate();
-
+  
   const handleLogout = async () => {
     try {
       await fetch('http://localhost:3000/api/logout', {
@@ -26,19 +25,15 @@ export default function Profile() {
     }
   };
 
-  const handleHome = async () => {
-    try {
+  const handleHome = () => {
       navigate('/');
-    } catch (error) {
-      console.error('An error occurred:', error);
-    }
   };
 
   return (
     <div className="min-h-screen bg-gray-100 pb-[68px]">
-      <Navbar onLogout={handleLogout} onProfile={handleHome}/>
+      <Navbar onLogout={handleLogout} onProfile={handleHome} isProfilePage={true}/>
        <main className="pt-20 pb-8">
-        coming soon
+        coming soon ngabs profile
       </main>
        <Footer />
     </div>

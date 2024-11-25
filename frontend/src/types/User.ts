@@ -9,6 +9,7 @@ export interface User {
 }
 
 export interface UserProfile {
+    id?: string;
     email?: string;
     username?: string;
     fullName: string | null;
@@ -21,6 +22,7 @@ export interface ApiResponse {
     success: boolean;
     message: string;
     body: {
+      id?: string;
       email?: string;
       username?: string;
       fullName: string | null;

@@ -13,7 +13,7 @@ import { UserProfile, User } from '@/types/User';
 export default function Home() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const [userData, setUserData] = useState<UserProfile | User>(null);
+  const [userData, setUserData] = useState<User | UserProfile>(null);
  
   useEffect(() => {
    const loadUser = async () => {
@@ -60,11 +60,11 @@ export default function Home() {
   };
 
   const handleProfile = async () => {
-    try {
-      navigate(`/profile/${id}`);
-    } catch (error) {
-      console.error('Profile error:', error);
+    if (!userData?.id) {  
+      console.error('No user ID available');
+      return;
     }
+    navigate(`/profile/${userData.id}`); 
   };
 
   console.log(id);
@@ -73,12 +73,12 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-100 pb-[68px]">
-      <Navbar onLogout={handleLogout} onProfile={handleProfile}/>
+      <Navbar onLogout={handleLogout} onProfile={handleProfile} isProfilePage={false}/>
 
       <main className="pt-20 pb-8">
         <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-4 gap-6">
           <div className="lg:col-span-1">
-            <ProfileCard username="bambang" email="bambang@gmail.com" fullName="bambang" />
+            <ProfileCard username="Ai Hoshino Istri Eriq" email="aihoshino@gmail.com" fullName="Ai Hoshino Istri Eriq" />
           </div>
 
           <div className="lg:col-span-2">

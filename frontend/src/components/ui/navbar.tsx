@@ -1,10 +1,10 @@
-import { Users, MessageSquare, Bookmark, Menu, Search } from 'lucide-react';
+import { Users, MessageSquare, Bookmark, Menu, Search, Home } from 'lucide-react';
 import { ProfilePicture } from './profilephoto';
 import { Input } from '@/components/ui/input';
 import { useState } from "react";
 import NavbarProps from "@/types/Navbar";
 
-export const Navbar = ({ onLogout, onProfile }: NavbarProps) => {
+export const Navbar = ({ onLogout, onProfile, isProfilePage }: NavbarProps) => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
 
@@ -68,8 +68,17 @@ export const Navbar = ({ onLogout, onProfile }: NavbarProps) => {
                 <div className="h-8 w-px bg-gray-200 mx-2"></div>
                 <div className="inline-flex flex-col items-center p-2 hover:text-gray-900 text-gray-500 cursor-pointer relative group"
                   onClick={onProfile}>
-                  <ProfilePicture size="sm" />
-                  <span className="text-xs mt-0.5">Me</span>
+                  {isProfilePage ? (
+                    <>
+                      <Home className="w-6 h-6" strokeWidth={1.5} />
+                      <span className="text-xs mt-0.5">Home</span>
+                    </>
+                  ) : (
+                    <>
+                      <ProfilePicture size="sm" />
+                      <span className="text-xs mt-0.5">Me</span>
+                    </>
+                  )}
                   <div className="absolute bottom-0 left-0 w-full h-0.5 bg-black transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
                 </div>
                 <button
