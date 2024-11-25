@@ -238,6 +238,12 @@ auth.get('/profile/:id', async (c) => {
       }, 401);
     }
 
+    const numberOfConnections = await prisma.connection.count({
+      where : {
+        fromId: userId
+      }
+    });
+
     const token = getCookie(c, 'jwt');
 
     if (!token) {
@@ -248,7 +254,8 @@ auth.get('/profile/:id', async (c) => {
           fullName: user.fullName,
           skills: user.skills,
           workHistory: user.workHistory,
-          profilePhotoPath: user.profilePhotoPath
+          profilePhotoPath: user.profilePhotoPath,
+          connections: numberOfConnections
         }
       });
     }
@@ -277,7 +284,8 @@ auth.get('/profile/:id', async (c) => {
           fullName: user.fullName,
           skills: user.skills,
           workHistory: user.workHistory,
-          profilePhotoPath: user.profilePhotoPath
+          profilePhotoPath: user.profilePhotoPath,
+          connections: numberOfConnections
         }
       });
     } 

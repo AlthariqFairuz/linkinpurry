@@ -2,11 +2,47 @@ import { Users, MessageSquare, Bookmark, Menu, Search, Home } from 'lucide-react
 import { ProfilePicture } from './profilephoto';
 import { Input } from '@/components/ui/input';
 import { useState } from "react";
-import NavbarProps from "@/types/Navbar";
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { toast } from '@/hooks/use-toast';
+import { ToastAction } from '@radix-ui/react-toast';
 
-export const Navbar = ({ onLogout, onProfile, isProfilePage }: NavbarProps) => {
+export const Navbar = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
+    const navigate = useNavigate();
+
+    const handleLogout = async () => {
+      try {
+        await fetch('http://localhost:3000/api/logout', {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+        navigate('/login', {
+          state: {
+            message: 'Logout successful!'
+          }
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to logout: " + error,
+          variant: "destructive",
+          action: <ToastAction altText="Try again" onClick={handleLogout}>Try again</ToastAction>
+        }); 
+      }
+    };
+  
+    const handleHome = () => {
+      navigate('/home');
+    };
+
+    const handleProfile = () => {
+      navigate('/profile');
+    };
 
     const handleSearch = (e: React.FormEvent) => {
         // NGETES DOANG JANLUP UBAH
@@ -46,6 +82,13 @@ export const Navbar = ({ onLogout, onProfile, isProfilePage }: NavbarProps) => {
             <div className="hidden sm:flex items-center">
               {/* Navigation Icons */}
               <div className="flex items-center space-x-1">
+                {/* Home */}
+                <div className="inline-flex flex-col items-center p-2 hover:text-gray-900 text-gray-500 cursor-pointer relative group"
+                  onClick={handleHome}>
+                  <Home className="w-6 h-6" strokeWidth={1.5} />
+                  <span className="text-xs mt-0.5">Home</span>
+                  <div className="absolute bottom-0 left-0 w-full h-0.5 bg-black transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
+                </div>
                 {/* Network */}
                 <div className="inline-flex flex-col items-center p-2 hover:text-gray-900 text-gray-500 cursor-pointer relative group">
                   <Users className="w-6 h-6" strokeWidth={1.5} />
@@ -67,26 +110,16 @@ export const Navbar = ({ onLogout, onProfile, isProfilePage }: NavbarProps) => {
                  {/* Profile Section */}
                 <div className="h-8 w-px bg-gray-200 mx-2"></div>
                 <div className="inline-flex flex-col items-center p-2 hover:text-gray-900 text-gray-500 cursor-pointer relative group"
-                  onClick={onProfile}>
-                  {isProfilePage ? (
-                    <>
-                      <Home className="w-6 h-6" strokeWidth={1.5} />
-                      <span className="text-xs mt-0.5">Home</span>
-                    </>
-                  ) : (
-                    <>
-                      <ProfilePicture size="sm" />
-                      <span className="text-xs mt-0.5">Me</span>
-                    </>
-                  )}
+                  onClick={handleProfile}>
+                    <ProfilePicture size="sm" />
+                    <span className="text-xs mt-0.5">Me</span>
                   <div className="absolute bottom-0 left-0 w-full h-0.5 bg-black transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
                 </div>
-                <button
-                  onClick={onLogout}
-                  className="ml-2 px-4 py-1.5 text-sm text-white bg-blue-600 rounded hover:bg-blue-700 transition-colors"
-                >
+                <Button
+                  variant="default"
+                  onClick={handleLogout}>
                   Logout
-                </button>
+                </Button>
               </div>
             </div>
              {/* Mobile Menu Button */}
@@ -102,6 +135,12 @@ export const Navbar = ({ onLogout, onProfile, isProfilePage }: NavbarProps) => {
           {isMobileMenuOpen && (
             <div className="sm:hidden border-t border-gray-200">
               <div className="pt-2 pb-3 space-y-1">
+                {/* Home */ }
+                <div className="flex items-center px-4 py-2 text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                  onClick={handleHome}>
+                  <Home className="w-6 h-6 mr-3" strokeWidth={1.5} />
+                  <span>Home</span>
+                </div>
                 {/* Network */}
                 <div className="flex items-center px-4 py-2 text-gray-500 hover:text-gray-900 hover:bg-gray-50">
                   <Users className="w-6 h-6 mr-3" strokeWidth={1.5} />
@@ -118,20 +157,18 @@ export const Navbar = ({ onLogout, onProfile, isProfilePage }: NavbarProps) => {
                   <span>Bookmarks</span>
                 </div>
                  {/* Profile */}
-                <div className="flex items-center px-4 py-2 text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-                  onClick={onProfile}
-                >
-                  <ProfilePicture size="sm" />
-                  <span className="ml-3">Profile</span>
-                </div>
+                 <div className="flex items-center px-4 py-2 text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                    onClick={handleProfile}>
+                      <ProfilePicture size="sm" className="mr-3" />
+                      <span>Me</span>
+                  </div>
                  {/* Mobile Logout */}
                 <div className="px-4 py-2">
-                  <button
-                    onClick={onLogout}
-                    className="w-full px-4 py-2 text-sm text-white bg-blue-600 rounded hover:bg-blue-700 transition-colors"
-                  >
+                  <Button
+                    variant="default"
+                    onClick={handleLogout}>
                     Logout
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>

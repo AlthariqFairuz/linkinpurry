@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from '@/hooks/use-toast';
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -49,7 +50,11 @@ export default function Profile() {
           setUserData(user);
         }
       } catch (error) {
-        console.error('Fetch user error:', error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch user details: " + error,
+          variant: "destructive",
+        });
       } finally {
         setIsLoading(false);
       }
@@ -58,30 +63,6 @@ export default function Profile() {
     fetchUserData();
   }, [navigate]);
   
-  const handleLogout = async () => {
-    try {
-      await fetch('http://localhost:3000/api/logout', {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-      
-      navigate('/login', {
-        state: {
-          message: 'Logout successful!'
-        }
-      });
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-  };
-
-  const handleHome = () => {
-    navigate('/home');
-  };
-
   const handleUpdateField = async (field: keyof User, value: string) => {
     try {
       const response = await fetch('http://localhost:3000/api/profile/update', {
@@ -94,8 +75,7 @@ export default function Profile() {
           [field]: value
         })
       });
-
-      if (response.ok) {
+       if (response.ok) {
         setUserData(prev => prev ? { ...prev, [field]: value } : null);
         setIsEditing(prev => ({ ...prev, [field]: false }));
       }
@@ -114,8 +94,7 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-gray-100 pb-[68px]">
-      <Navbar onLogout={handleLogout} onProfile={handleHome} isProfilePage={true}/>
-      
+      <Navbar/>   
       <main className="pt-20 pb-8">
         <div className="max-w-3xl mx-auto px-4 space-y-6">
           <Card>
@@ -168,7 +147,10 @@ export default function Profile() {
                           className="flex-1"
                         />
                         <Button 
-                          onClick={() => handleUpdateField(field as keyof User, userData?.[field as keyof User] || '')}
+                          onClick={() => handleUpdateField(
+                            field as keyof User, 
+                            String(userData?.[field as keyof User] || '')
+                          )}
                           size="sm"
                         >
                           Save

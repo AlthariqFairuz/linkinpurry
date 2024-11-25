@@ -9,8 +9,10 @@ import { getUserId } from '@/api/getUserId';
 import { fetchUser } from '@/api/fetchUser';
 import { useEffect, useState } from 'react';
 import { User } from '@/types/User';
+import { useToast } from "@/hooks/use-toast";
 
 export default function Home() {
+  const { toast } = useToast();
   const navigate = useNavigate();
   const [userData, setUserData] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -23,7 +25,11 @@ export default function Home() {
         // First get the user ID
         const id = await getUserId();
         if (!id) {
-          console.log('Failed to fetch user ID');
+          navigate('/login', {
+            state: {
+              message: "Please login to continue"
+            }
+          });
           return;
         }
       
@@ -33,14 +39,18 @@ export default function Home() {
           setUserData(user);
         }
       } catch (error) {
-        console.error('Fetch user error:', error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch user details: " + error,
+          variant: "destructive",
+        });
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchUserData();
-  }, []);
+  }, [toast, navigate]);
  
   const posts = [
     {
@@ -51,32 +61,8 @@ export default function Home() {
     }
   ];
 
-  const handleLogout = async () => {
-    try {
-      await fetch('http://localhost:3000/api/logout', {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-      
-      navigate('/login', {
-        state: {
-          message: 'Logout successful!'
-        }
-      });
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-  };
-
   console.log(userData);
-
-  const handleProfile = () => {
-    navigate('/profile');
-  }
-
+  
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -87,8 +73,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-100 pb-[68px]">
-      <Navbar onLogout={handleLogout} onProfile={handleProfile} isProfilePage={false}/>
-
+      <Navbar />
       <main className="pt-20 pb-8">
         <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-4 gap-6">
           <div className="lg:col-span-1">
@@ -115,7 +100,6 @@ export default function Home() {
           </div>
         </div>
       </main>
-
       <Footer />
     </div>
   );

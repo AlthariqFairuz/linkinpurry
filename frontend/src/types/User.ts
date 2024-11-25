@@ -2,28 +2,23 @@ export interface User {
     email: string;
     username: string;
     fullName: string | null;
-    skills: string;
-    workHistory: string
+    skills: string | null;
+    workHistory: string | null;
     profilePhotoPath: string;
-}
-
-export interface UserProfile {
-    fullName: string | null;
-    skills: string;
-    workHistory: string;
-    profilePhotoPath: string;
+    connections: number | null;
 }
 
 export interface ApiResponse {
     success: boolean;
     message: string;
     body: {
-      email: string | null;
-      username: string | null;
+      email: string;
+      username: string;
       fullName: string | null;
-      skills: string;
-      workHistory: string;
+      skills: string | null;
+      workHistory: string | null;
       profilePhotoPath: string;
+      connections: number | null;
     } | null;
 }
 

@@ -9,7 +9,6 @@ export const getUserId = async () => {
       }
     });
     
-    // Add error handling for non-200 responses
     if (!response.ok) {
       console.error('Server response not ok:', response.status);
       return null;

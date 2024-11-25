@@ -1,0 +1,204 @@
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { fetchUser } from '@/api/fetchUser';
+import { getUserId } from '@/api/getUserId';
+import { User } from '@/types/User';
+import { useToast } from "@/hooks/use-toast";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ProfilePicture } from '@/components/ui/profilephoto';
+import { Navbar } from '@/components/ui/navbar';
+import Footer from '@/components/ui/footer';
+
+export const ProfileOthers = () => {
+ const { id } = useParams();
+ const [profileData, setProfileData] = useState<User | null>(null);
+ const [isLoading, setIsLoading] = useState(true);
+ const [isConnected, setIsConnected] = useState(false);
+ const { toast } = useToast();
+ const navigate = useNavigate();
+  useEffect(() => {
+   const loadData = async () => {
+     try {
+       setIsLoading(true);
+       
+       if (!id) {
+         navigate('/profile');
+         return;
+       }
+        // Get current user's ID
+       const currentUserId = await getUserId();
+       
+       // Check if viewing own profile
+       if (currentUserId === id) {
+         navigate('/profile');
+         return;
+       }
+        // Fetch profile data
+       const userData = await fetchUser(id);
+       if (userData) {
+         setProfileData(userData);
+         
+         // Check if connected
+         const connectionStatus = await fetch(`http://localhost:3000/api/connection-status/${id}`, {
+           credentials: 'include'
+         });
+         const { isConnected: connectionResult } = await connectionStatus.json();
+         setIsConnected(connectionResult);
+       } else {
+         toast({
+           title: "Error",
+           description: "Failed to load profile data",
+           variant: "destructive",
+         });
+       }
+     } catch (error) {
+       console.error('Error loading profile:', error);
+       toast({
+         title: "Error",
+         description: "An error occurred while loading the profile",
+         variant: "destructive",
+       });
+     } finally {
+       setIsLoading(false);
+     }
+   };
+    loadData();
+ }, [id, toast, navigate]);
+
+  const handleConnect = async () => {
+   try {
+     const response = await fetch(`http://localhost:3000/api/connect/${id}`, {
+       method: 'POST',
+       credentials: 'include',
+       headers: {
+         'Content-Type': 'application/json',
+       },
+     });
+      if (response.ok) {
+       setIsConnected(true);
+       toast({
+         title: "Success",
+         description: "Connection request sent",
+       });
+     } else {
+       toast({
+         title: "Error",
+         description: "Failed to send connection request",
+         variant: "destructive",
+       });
+     }
+   } catch (error) {
+     console.error('Connection request error:', error);
+     toast({
+       title: "Error",
+       description: "An error occurred while sending the connection request",
+       variant: "destructive",
+     });
+   }
+ };
+  const handleDisconnect = async () => {
+   try {
+     const response = await fetch(`http://localhost:3000/api/disconnect/${id}`, {
+       method: 'POST',
+       credentials: 'include',
+       headers: {
+         'Content-Type': 'application/json',
+       },
+     });
+      if (response.ok) {
+       setIsConnected(false);
+       toast({
+         title: "Success",
+         description: "Successfully disconnected",
+       });
+     } else {
+       toast({
+         title: "Error",
+         description: "Failed to disconnect",
+         variant: "destructive",
+       });
+     }
+   } catch (error) {
+     console.error('Disconnect error:', error);
+     toast({
+       title: "Error",
+       description: "An error occurred while disconnecting",
+       variant: "destructive",
+     });
+   }
+ };
+  if (isLoading) {
+   return (
+     <div className="flex justify-center items-center min-h-screen">
+       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+     </div>
+   );
+ }
+  if (!profileData) {
+   navigate('*');
+ }
+  return (
+   <div className="min-h-screen bg-gray-100 pb-[68px]">
+     <Navbar />
+     
+     <main className="pt-20 pb-8">
+       <div className="max-w-3xl mx-auto px-4 space-y-6">
+         {/* Basic Profile Info - Visible to All */}
+         <Card>
+           <CardHeader>
+             <CardTitle>Profile</CardTitle>
+           </CardHeader>
+           <CardContent className="flex items-center space-x-4">
+             <ProfilePicture size="lg" src={profileData.profilePhotoPath} />
+             <div>
+               <h2 className="text-2xl font-bold">{profileData.fullName}</h2>
+               <p className="text-gray-600">{profileData.connections} connections</p>
+               {!isConnected && (
+                 <Button 
+                   onClick={handleConnect}
+                   className="mt-2"
+                 >
+                   Connect
+                 </Button>
+               )}
+               {isConnected && (
+                 <Button 
+                   onClick={handleDisconnect}
+                   variant="destructive"
+                   className="mt-2"
+                 >
+                   Disconnect
+                 </Button>
+               )}
+             </div>
+           </CardContent>
+         </Card>
+          {/* Work History - Visible to All Authenticated Users */}
+         <Card>
+           <CardHeader>
+             <CardTitle>Work History</CardTitle>
+           </CardHeader>
+           <CardContent>
+             <p className="whitespace-pre-wrap">{profileData.workHistory}</p>
+           </CardContent>
+         </Card>
+          {/* Skills - Only Visible to Connected Users */}
+         {isConnected && (
+           <Card>
+             <CardHeader>
+               <CardTitle>Skills</CardTitle>
+             </CardHeader>
+             <CardContent>
+               <p className="whitespace-pre-wrap">{profileData.skills}</p>
+             </CardContent>
+           </Card>
+         )}
+       </div>
+     </main>
+     
+     <Footer />
+   </div>
+ );
+};
+export default ProfileOthers;

@@ -1,4 +1,4 @@
-import {ApiResponse, User } from '@/types/User';
+import { ApiResponse, User } from '@/types/User';
 
 export const fetchUser = async (userId: string): Promise<User> => {
   try {
