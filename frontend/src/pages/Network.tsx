@@ -50,14 +50,6 @@ export default function Network() {
   }, []);
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-gray-600">Loading...</div>
-      </div>
-    );
-  }
-
-  if (isLoading) {
     return <Loading isLoading={isLoading} />;
   }
 
