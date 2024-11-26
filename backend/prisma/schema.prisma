@@ -27,7 +27,7 @@ model User {
   updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamptz()
   
   // Relations
-  feeds              Feed[]              @relation("UserToFeed")
+  feeds              Feed[]              @relation("UserToFeed") // artinya user memiliki banyak feed (ini bukan attribute)
   sentChats          Chat[]              @relation("SentChats")
   receivedChats      Chat[]              @relation("ReceivedChats")
   sentRequests       ConnectionRequest[]  @relation("SentRequests")
