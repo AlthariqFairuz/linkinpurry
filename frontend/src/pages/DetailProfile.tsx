@@ -139,7 +139,7 @@ export const DetailProfile = () => {
    navigate('*');
  }
   return (
-   <div className="min-h-screen bg-gray-100 pb-[68px]">
+   <div className="min-h-screen bg-[#f3f2ef] pb-[68px]">
      <Navbar />
      
      <main className="pt-20 pb-8">
