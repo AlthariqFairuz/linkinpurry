@@ -39,23 +39,17 @@ export default function Profile() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { toast } = useToast();
 
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setSelectedFile(e.target.files[0]);
     }
   };
 
-  const handlePhotoUpload = async () => {
-   
-  };
-  
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         setIsLoading(true);
         const id = await getUserId();
-        
         const user = await fetchUser(id);
 
         if (user) {
@@ -74,32 +68,43 @@ export default function Profile() {
 
     fetchUserData();
   }, [toast]);
-  
-  const handleUpdateField = async (field: keyof User, value: string) => {
+
+  const handleUpdateProfile = async (field: keyof User, value: string) => {
     if (!userData) return;
     
     try {
-      const updateData = {
-        fullName: userData.fullName,
-        username: userData.username,
-        skills: userData.skills,
-        workHistory: userData.workHistory,
-        // Override the field being updated
-        [field]: value
-      };
-       const response = await fetch(`http://localhost:3000/api/profile/${userData.id}`, {
+      const formData = new FormData();
+      
+      // Add all current user data to form
+      formData.append('fullName', userData.fullName || '');
+      formData.append('username', userData.username);
+      formData.append('skills', userData.skills || '');
+      formData.append('workHistory', userData.workHistory || '');
+      
+      // Override the field being updated
+      formData.append(field, value);
+      
+      // Add photo if one is selected
+      if (selectedFile && field === 'profilePhotoPath') {
+        formData.append('photo', selectedFile);
+      }
+
+      const response = await fetch(`http://localhost:3000/api/profile/${userData.id}`, {
         method: 'PUT',
         credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updateData)
+        body: formData
       });
-       const data = await response.json();
+
+      const data = await response.json();
       
       if (response.ok) {
-        setUserData(prev => prev ? { ...prev, [field]: value } : null);
+        setUserData(prev => prev ? { 
+          ...prev, 
+          ...data.body // Update all returned fields
+        } : null);
+        
         setIsEditing(prev => ({ ...prev, [field]: false }));
+        setSelectedFile(null);
         
         toast({
           title: "Success",
@@ -123,7 +128,6 @@ export default function Profile() {
     return <Loading isLoading={isLoading} />;
   }
 
-
   return (
     <div className="min-h-screen bg-[#f3f2ef] pb-[68px]">
       <Navbar/>   
@@ -137,35 +141,35 @@ export default function Profile() {
               <ProfilePicture size="lg" src={getImageUrl(userData?.profilePhotoPath)} />
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="outline" onClick={handlePhotoUpload}>Change Photo</Button>
+                  <Button variant="outline">Change Photo</Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
                     <AlertDialogTitle>Update Profile Photo</AlertDialogTitle>
                     <AlertDialogDescription>
-                          Choose a new photo to update your profile picture.
-                          {selectedFile && (
-                            <span className="block mt-2 text-sm text-green-600">
-                              Selected: {selectedFile.name}
-                          </span>
-                        )}
+                      Choose a new photo to update your profile picture.
+                      {selectedFile && (
+                        <span className="block mt-2 text-sm text-green-600">
+                          Selected: {selectedFile.name}
+                        </span>
+                      )}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
-                    <Input 
-                      type="file" 
-                      accept="image/*" 
-                      onChange={handleFileChange}
-                      className="mt-2"
-                    />
-                    <AlertDialogFooter>
-                      <AlertDialogCancel onClick={() => setSelectedFile(null)}>Cancel</AlertDialogCancel>
-                      <AlertDialogAction 
-                        onClick={handlePhotoUpload}
-                        disabled={!selectedFile}
-                      >
-                        Upload Photo
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
+                  <Input 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={handleFileChange}
+                    className="mt-2"
+                  />
+                  <AlertDialogFooter>
+                    <AlertDialogCancel onClick={() => setSelectedFile(null)}>Cancel</AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={() => handleUpdateProfile('profilePhotoPath', userData?.profilePhotoPath || '')}
+                      disabled={!selectedFile}
+                    >
+                      Upload Photo
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
             </CardContent>
@@ -193,7 +197,7 @@ export default function Profile() {
                           className="flex-1"
                         />
                         <Button 
-                          onClick={() => handleUpdateField(
+                          onClick={() => handleUpdateProfile(
                             field as keyof User, 
                             String(userData?.[field as keyof User] || '')
                           )}
@@ -238,8 +242,8 @@ export default function Profile() {
                     className="min-h-[100px]"
                   />
                   <Button 
-                    variant='default'
-                    onClick={() => handleUpdateField('skills', userData?.skills || '')}
+                    variant="default"
+                    onClick={() => handleUpdateProfile('skills', userData?.skills || '')}
                     size="sm"
                   >
                     Save
@@ -276,7 +280,7 @@ export default function Profile() {
                     className="min-h-[150px]"
                   />
                   <Button 
-                    onClick={() => handleUpdateField('workHistory', userData?.workHistory || '')}
+                    onClick={() => handleUpdateProfile('workHistory', userData?.workHistory || '')}
                     size="sm"
                     variant="default"
                   >
@@ -299,7 +303,6 @@ export default function Profile() {
           </Card>
         </div>
       </main>
-      
       <Footer />
     </div>
   );

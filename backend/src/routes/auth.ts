@@ -4,8 +4,7 @@ import { getCookie, setCookie } from 'hono/cookie'
 import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../db/connections.js';
-import { mkdir, writeFile } from 'fs/promises';
-import { join, extname } from 'path';
+import { uploadToCloudinary } from '../utils/cloudinary.js';
 
 const auth = new Hono();
 
@@ -313,7 +312,6 @@ auth.put('/profile/:id', async (c) => {
       }, 401);
     }
 
-    const { fullName, username, skills, workHistory } = await c.req.json();
     const decoded = await verifyToken(token);
     const userId = BigInt(decoded.userId);
 
@@ -329,6 +327,15 @@ auth.put('/profile/:id', async (c) => {
       }, 401);
     }
 
+    // Parse form data
+    const formData = await c.req.formData();
+    
+    const fullName = formData.get('fullName') as string;
+    const username = formData.get('username') as string;
+    const skills = formData.get('skills') as string;
+    const workHistory = formData.get('workHistory') as string;
+    const photo = formData.get('photo') as File | null;
+
     if (!username) {
       return c.json({ 
         success: false, 
@@ -339,7 +346,7 @@ auth.put('/profile/:id', async (c) => {
 
     const existingUser = await prisma.user.findFirst({
       where: { 
-        username,
+        username: username,
         id: { not: userId }
       } 
     });
@@ -352,27 +359,51 @@ auth.put('/profile/:id', async (c) => {
       }, 400);
     }
 
-    await prisma.user.update({
+    // Handle photo upload if provided
+    let profilePhotoPath = user.profilePhotoPath;
+    if (photo) {
+      // Convert File to buffer for Cloudinary
+      const arrayBuffer = await photo.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      
+      // Create file-like object for Cloudinary
+      const fileObject = {
+        buffer,
+        mimetype: photo.type,
+      };
+      
+      profilePhotoPath = await uploadToCloudinary(fileObject);
+    }
+
+    const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: {
         fullName,
         username,
         skills,
-        workHistory
+        workHistory,
+        profilePhotoPath
       }
     });
 
     return c.json({
       success: true,
       message: 'Update successful',
-      body: null
+      body: {
+        fullName: updatedUser.fullName,
+        username: updatedUser.username,
+        skills: updatedUser.skills,
+        workHistory: updatedUser.workHistory,
+        profilePhotoPath: updatedUser.profilePhotoPath
+      }
     });
 
   } catch (error) {
+    console.error('Update error:', error);
     return c.json({ 
       success: false, 
       message: 'Update failed', 
-      body: error
+      body: error 
     }, 500);
   }
 });
