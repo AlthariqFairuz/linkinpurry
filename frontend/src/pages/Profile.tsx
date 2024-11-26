@@ -137,11 +137,11 @@ export default function Profile() {
             <CardHeader>
               <CardTitle>Profile Photo</CardTitle>
             </CardHeader>
-            <CardContent className="flex items-center space-x-4">
+            <CardContent className="flex flex-col items-center justify-center space-y-4">
               <ProfilePicture size="lg" src={userData?.profilePhotoPath} />
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="outline">Change Photo</Button>
+                  <Button variant="outline" className="w-full sm:w-auto">Change Photo</Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
