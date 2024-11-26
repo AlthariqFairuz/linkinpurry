@@ -3,6 +3,7 @@ import type { Context } from 'hono';
 import { getCookie, setCookie } from 'hono/cookie'
 import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { z } from 'zod';
 import { prisma } from '../db/connections.js';
 import { uploadToCloudinary } from '../utils/cloudinary.js';
 
@@ -65,6 +66,38 @@ const verifyToken = (token: string): Promise<any> => {
   });
 };
 
+const registerSchema = z.object({
+  username: z
+    .string()
+    .min(3, 'Username must be at least 3 characters')
+    .max(255, 'Username must not exceed 255 characters')
+    .regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores'),
+  
+  fullName: z
+    .string()
+    .max(255, 'Full name must not exceed 50 characters')
+    .optional(),
+  
+  email: z
+    .string()
+    .email('Invalid email format')
+    .max(255, 'Email must not exceed 255 characters'),
+  
+  password: z
+    .string()
+    .min(8, 'Password must be at least 8 characters')
+    .max(100, 'Password must not exceed 100 characters')
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+    .regex(/[0-9]/, 'Password must contain at least one number')
+    .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
+  
+  confirmPassword: z.string()
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"], 
+});
+
 // Add verify endpoint
 auth.get('/verify', async (c) => {
   try {
@@ -120,18 +153,33 @@ auth.post('/logout', (c) => {
 
 auth.post('/register', async (c) => {
   try {
-    const { username, fullName, email, password, confirmPassword } = await c.req.json();
+    const body = await c.req.json();
 
-    if (!username || !email || !password || !confirmPassword) {
+    const result = registerSchema.safeParse(body);
+
+    if (!result.success) {
+      const errorMessages = result.error.errors.map(err => ({
+        field: err.path.join('.'),
+        message: err.message
+      }));
+
       return c.json({ 
         success: false, 
-        message: 'All fields excepts fullName are required', 
-        body: null 
+        message: 'Validation failed',
+        body: errorMessages
       }, 400);
     }
+
+    const validatedData = result.data;
     
+    // Check if user already exists
     const existingUser = await prisma.user.findFirst({
-      where: { OR: [{ email }, { username }] }
+      where: { 
+        OR: [
+          { email: validatedData.email }, 
+          { username: validatedData.username }
+        ] 
+      }
     });
 
     if (existingUser) {
@@ -142,44 +190,46 @@ auth.post('/register', async (c) => {
       }, 400);
     }
 
-    if (password !== confirmPassword) {
+     // Hash password with bcrypt
+     const hashedPassword = await bcryptjs.hash(validatedData.password, 10);
+
+     // Create new user
+     await prisma.user.create({
+       data: {
+         username: validatedData.username,
+         fullName: validatedData.fullName || null,
+         email: validatedData.email,
+         passwordHash: hashedPassword,
+         profilePhotoPath: '/images/default.webp'
+       }
+     });
+ 
+     return c.json({
+       success: true,
+       message: "Registration Successful",
+       body: null
+     });
+   } catch (error) {
+     return c.json({ 
+       success: false, 
+       message: 'Registration failed', 
+       body: null 
+     }, 500);
+   }
+ });
+
+ auth.post('/login', async (c) => {
+  try {
+    const { email, password } = await c.req.json();
+
+    // Validate input
+    if (!email || !password) {
       return c.json({ 
         success: false, 
-        message: 'Passwords do not match', 
+        message: 'Email and password are required',
         body: null 
       }, 400);
     }
-
-    // Using bcrypt with salt round 10 as required
-    const hashedPassword = await bcryptjs.hash(password, 10);
-
-    await prisma.user.create({
-      data: {
-        username,
-        fullName,
-        email,
-        passwordHash: hashedPassword,
-        profilePhotoPath: '/images/default.webp'
-      }
-    });
-
-    return c.json({
-      success: true,
-      message: "Registration Successful",
-      body: null
-    });
-  } catch (error) {
-    return c.json({ 
-      success: false, 
-      message: `Registration failed: ${error}`, 
-      body: null 
-    }, 500);
-  }
-});
-
-auth.post('/login', async (c) => {
-  try {
-    const { email, password } = await c.req.json();
 
     const user = await prisma.user.findUnique({ 
       where: { email }
@@ -207,15 +257,16 @@ auth.post('/login', async (c) => {
 
     return c.json({
       success: true,
-      message: 'Login Success!',
+      message: `Welcome back, ${user.fullName}!`,
       body: {
         token
       }
     });
   } catch (error) {
+    console.error('Login error:', error);
     return c.json({ 
       success: false, 
-      message: 'Login failed', 
+      message: 'An error occurred during login. Please try again.', 
       body: null 
     }, 500);
   }

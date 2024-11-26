@@ -1,51 +1,20 @@
-import { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { AlertCircle } from 'lucide-react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navigation from '@/components/ui/navigation';
 import { Card, CardContent, CardTitle, CardDescription, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useToast } from '@/hooks/use-toast';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
-  const location = useLocation();
   const navigate = useNavigate();
+  const { toast } = useToast();
   
-  useEffect(() => {
-    if (location.state?.message) {
-      setSuccessMessage(location.state.message);
-      window.history.replaceState({}, document.title);
-    }
-  }, [location]);
-
-  // Clear error message affter 3 seconds
-  useEffect(() => {
-    if (error) {
-      const timer = setTimeout(() => {
-        setError('');
-      }, 3000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [error]);
-
-  // Clear success message affter 3 seconds
-  useEffect(() => {
-    if (successMessage) {
-      const timer = setTimeout(() => {
-        setSuccessMessage('');
-      }, 2000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [successMessage]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     try {
       const response = await fetch('http://localhost:3000/api/login', {
         method: 'POST',
@@ -55,18 +24,35 @@ export default function Login() {
       });
       
       const data = await response.json();
-      if (response.ok && data.success) { 
-        navigate('/home', { 
-          state: { 
-            message: data.message 
-          }
+      
+      if (data.success) {
+        toast({
+          title: "Success",
+          description: data.message || "Login successful!",
+          variant: "success",
         });
+
+        // Reset form
+        setEmail('');
+        setPassword('');
+        
+        // Navigate to home
+        navigate('/home');
       } else {
-        setError(data.message || 'Invalid credentials');
+        toast({
+          title: "Error",
+          description: data.message || 'Invalid credentials',
+          variant: "destructive",
+        });
       }
     } catch (err) {
-      setError(`An error occurred during login: ${err.message}`);
-    }
+      console.error('Login error:', err);
+      toast({
+        title: "Error",
+        description: "An error occurred during login. Please try again.",
+        variant: "destructive",
+      });
+    } 
   };
 
   return (
@@ -88,7 +74,7 @@ export default function Login() {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
-                {error && (
+                {/* {error && (
                   <Alert variant="destructive">
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>{error}</AlertDescription>
@@ -100,7 +86,7 @@ export default function Login() {
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>{successMessage}</AlertDescription>
                   </Alert>
-                )}
+                )} */}
 
                 <div className="space-y-2">
                   <label htmlFor="email" className="text-sm font-medium text-gray-700">

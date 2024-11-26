@@ -3,53 +3,102 @@ import { Input } from '@/components/ui/input';
 import { Card, CardDescription, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlertCircle } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import Footer from '@/components/ui/footer';
 import Navigation from '@/components/ui/navigation';
+import { useToast } from '@/hooks/use-toast';
+import ValidationError from '@/types/ValidationError';
 
 export default function Register() {
-  const [username, setUsername] = useState('');
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
+  const [username, setUsername] = useState<string>('');
+  const [fullName, setFullName] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [confirmPassword, setConfirmPassword] = useState<string>('');
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handleSubmit = async (e : React.FormEvent) => {
     e.preventDefault();
+
+    setErrors({});
+
     try {
-      const response = await fetch('http://localhost:3000/api/register', { 
+      const response = await fetch('http://localhost:3000/api/register', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
-          username, 
-          fullName, 
-          email, 
+        body: JSON.stringify({
+          username,
+          fullName,
+          email,
           password,
           confirmPassword
         }),
         credentials: 'include',
       });
-      
+
       const data = await response.json();
-    
-      if (response.ok && data.success) { 
-        // redirect to login page with a success message
-        navigate('/login', { 
-          state: { 
-            message: data.message 
-          }
+      
+      
+      if (data.success) {
+
+        toast({
+          title: "Success",
+          description: data.message || "Registration successful! Please login.",
+          variant: "success",
         });
+        
+        // Clear form
+        setUsername('');
+        setFullName('');
+        setEmail('');
+        setPassword('');
+        setConfirmPassword('');
+        
+        // Redirect to login page
+        navigate('/login');
+
       } else {
-        setError(data.message || 'Registration failed');
+        // Handle errors - check if it's validation errors or general error
+        if (data.body && Array.isArray(data.body) && data.body.length > 0) {
+          // Convert validation errors array to object
+          const newErrors = data.body.reduce((acc: { [key: string]: string }, error: ValidationError) => {
+            acc[error.field] = error.message;
+            return acc;
+          }, {});
+          
+          setErrors(newErrors);
+          
+          toast({
+            title: "Validation Error",
+            description: data.body[0].message,
+            variant: "destructive",
+          });
+        } 
+        else {
+          // Handle general error message
+          console.error(errors);
+          const errorMessage = data.message || 'Registration failed';
+          toast({
+            title: "Error",
+            description: errorMessage,
+            variant: "destructive",
+          });
+          setErrors({ general: errorMessage });
+        }
       }
     } catch (err) {
       console.error('Registration error:', err);
-      setError(err.message || 'An error occurred during registration. Please try again.');
+      toast({
+        title: "Error",
+        description: "An error occurred during registration. Please try again.",
+        variant: "destructive",
+      });
+      setErrors({ 
+        general: 'An error occurred during registration. Please try again.' 
+      });
     }
   };
 
@@ -72,13 +121,6 @@ export default function Register() {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
-                {error && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{error}</AlertDescription>
-                  </Alert>
-                )}
-
                 <div className="space-y-2">
                   <label htmlFor="username" className="text-sm font-medium text-gray-700">
                     Username

@@ -14,9 +14,10 @@ export const DetailProfile = () => {
  const { id } = useParams();
  const [profileData, setProfileData] = useState<User | null>(null);
  const [isLoading, setIsLoading] = useState(true);
- const [isConnected, setIsConnected] = useState(false);
+ const [isConnected, setIsConnected] = useState<boolean>(false);
  const { toast } = useToast();
  const navigate = useNavigate();
+
   useEffect(() => {
    const loadData = async () => {
      try {
@@ -45,7 +46,8 @@ export const DetailProfile = () => {
          });
          const { isConnected: connectionResult } = await connectionStatus.json();
          setIsConnected(connectionResult);
-       } else {
+       } 
+       else {
          toast({
            title: "Error",
            description: "Failed to load profile data",
