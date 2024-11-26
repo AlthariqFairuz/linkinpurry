@@ -15,13 +15,13 @@ const ProfileHeader = ({
         {/* Background Banner */}
         <div className="bg-white rounded-lg shadow mb-4">
             <img 
-            src="/images/default-background.webp" 
-            className="h-24 w-full rounded-t-lg object-cover" 
+            src="/images/istri-gw.webp" 
+            className="h-48 w-full rounded-t-lg object-cover" 
             alt="Background"
         />
         </div>
         <CardContent className="relative pt-0">
-        {/* Profile Picture - Positioned to overlap banner */}
+        {/* Profile Picture - overlap banner */}
         <div className="absolute -top-12 left-6">
           <div className="rounded-full border-4 border-white bg-white">
             <ProfilePicture size="lg" src={profilePhotoPath} />

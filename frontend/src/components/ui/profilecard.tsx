@@ -5,7 +5,7 @@ export const ProfileCard = ({ username, email, fullName, profilePhotoPath, conne
     return (
       <div className="bg-white rounded-lg shadow mb-4">
         <img 
-         src="/images/default-background.webp" 
+         src="/images/istri-gw.webp" 
          className="h-24 w-full rounded-t-lg object-cover" 
          alt="Background"
        />

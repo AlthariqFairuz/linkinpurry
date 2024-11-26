@@ -141,7 +141,7 @@ export const DetailProfile = () => {
  }
 
    return (
-    <div className="min-h-screen bg-[#f3f2ef]">
+    <div className="min-h-screen bg-[#f3f2ef] pt-8">
       <Navbar />
       
       <main className="pt-16 pb-8">
