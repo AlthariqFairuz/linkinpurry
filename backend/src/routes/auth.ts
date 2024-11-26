@@ -9,6 +9,10 @@ import { uploadToCloudinary } from '../utils/cloudinary.js';
 
 const auth = new Hono();
 
+BigInt.prototype.toJSON = function () {
+  return this.toString();
+}
+
 // Helper function to generate JWT with exactly 1 hour TTL
 const generateToken = (user: { id: bigint; email: string; username: string; fullName: string | null }) => {
   const secret = process.env.JWT_SECRET;

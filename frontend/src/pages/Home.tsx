@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import Footer from '@/components/ui/footer';
 import { ProfileCard } from '@/components/ui/profilecard';
-import { Post } from '@/components/ui/post';
+import { Feed } from '@/components/ui/feed';
 import { Sidebar } from '@/components/ui/sidebar';
 import { Navbar } from '@/components/ui/navbar';
 import { ProfilePicture } from '@/components/ui/profilephoto';
@@ -83,7 +83,7 @@ export default function Home() {
             </div>
 
             {posts.map(post => (
-              <Post key={post.id} />
+              <Feed key={post.id} />
             ))}
           </div>
 

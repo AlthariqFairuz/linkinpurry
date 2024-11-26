@@ -50,7 +50,7 @@ export const DetailProfile = () => {
        else {
          toast({
            title: "Error",
-           description: "Failed to load profile data",
+           description: "User does not exist",
            variant: "destructive",
          });
        }
