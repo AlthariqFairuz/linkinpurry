@@ -24,7 +24,6 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from '@/hooks/use-toast';
-import { getImageUrl } from '@/utils/config';
 import Loading from '@/components/ui/loading';
 
 export default function Profile() {
@@ -88,7 +87,7 @@ export default function Profile() {
       if (selectedFile && field === 'profilePhotoPath') {
         formData.append('photo', selectedFile);
       }
-
+      setIsLoading(true);
       const response = await fetch(`http://localhost:3000/api/profile/${userData.id}`, {
         method: 'PUT',
         credentials: 'include',
@@ -105,6 +104,7 @@ export default function Profile() {
         
         setIsEditing(prev => ({ ...prev, [field]: false }));
         setSelectedFile(null);
+        setIsLoading(false);
         
         toast({
           title: "Success",
@@ -138,7 +138,7 @@ export default function Profile() {
               <CardTitle>Profile Photo</CardTitle>
             </CardHeader>
             <CardContent className="flex items-center space-x-4">
-              <ProfilePicture size="lg" src={getImageUrl(userData?.profilePhotoPath)} />
+              <ProfilePicture size="lg" src={userData?.profilePhotoPath} />
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="outline">Change Photo</Button>

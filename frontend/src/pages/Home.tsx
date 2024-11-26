@@ -9,8 +9,7 @@ import { getUserId } from '@/api/getUserId';
 import { fetchUser } from '@/api/fetchUser';
 import { useEffect, useState } from 'react';
 import { User } from '@/types/User';
-import { useToast } from "@/hooks/use-toast";
-import { getImageUrl } from '@/utils/config';
+import { useToast } from "@/hooks/use-toast"
 import Loading from '@/components/ui/loading';
 
 export default function Home() {
@@ -55,8 +54,6 @@ export default function Home() {
     }
   ];
 
-  // console.log(userData);
-  
   if (isLoading) {
     return <Loading isLoading={isLoading} />;
   }
@@ -71,7 +68,7 @@ export default function Home() {
               fullName={userData.fullName} 
               username={userData.username} 
               email={userData.email} 
-              profilePhotoPath={getImageUrl(userData.profilePhotoPath)}
+              profilePhotoPath={userData.profilePhotoPath}
             />
           </div>
 

@@ -74,20 +74,6 @@ export default function Login() {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
-                {/* {error && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{error}</AlertDescription>
-                  </Alert>
-                )}
-                
-                {successMessage && (
-                  <Alert variant="default" className="bg-green-50 text-green-600 border-green-200">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{successMessage}</AlertDescription>
-                  </Alert>
-                )} */}
-
                 <div className="space-y-2">
                   <label htmlFor="email" className="text-sm font-medium text-gray-700">
                     Email

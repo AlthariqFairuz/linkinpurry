@@ -1,6 +1,31 @@
 import { Progress } from "@/components/ui/progress"
+import { useState } from "react";
+import { useEffect } from "react";
 export default function Loading({ isLoading }: { isLoading: boolean }) {
- if (!isLoading) return null;
+  
+  const [progress, setProgress] = useState(0)
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setProgress((oldProgress) => {
+        // When it reaches 100, reset to 0
+        if (oldProgress === 100) {
+          return 0
+        }
+        // Increment by a random value between 5 and 15
+        const increment = Math.random() * 10 + 5
+        const newProgress = Math.min(oldProgress + increment, 100)
+        return newProgress
+      })
+    }, 500) 
+
+    return () => {
+      clearInterval(timer)
+    }
+  }, [])
+
+  if (!isLoading) return null
+ 
  return (
    <div className="flex justify-center items-center min-h-screen bg-white">
      <div className="flex flex-col items-center">
@@ -15,10 +40,12 @@ export default function Loading({ isLoading }: { isLoading: boolean }) {
        </svg>
        
        {/* Shadcn Progress */}
-       <Progress 
-         value={100} 
-         className="w-24 mt-4 animate-[progress_1.5s_ease-in-out_infinite]" 
-       />
+       <div className="w-24 space-y-2 mt-4">
+          <Progress value={progress} className="h-2" />
+          <p className="text-sm text-center text-neutral-500">
+            {Math.round(progress)}%
+          </p>
+        </div>
      </div>
    </div>
  );
