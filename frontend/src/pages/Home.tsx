@@ -77,7 +77,7 @@ export default function Home() {
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow mb-4 p-4">
               <div className="flex gap-4">
-                <ProfilePicture size="sm" />
+                <ProfilePicture size="sm" src={userData.profilePhotoPath}/>
                 <button className="flex-1 text-left px-4 py-2.5 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200">
                   Start a post
                 </button>
