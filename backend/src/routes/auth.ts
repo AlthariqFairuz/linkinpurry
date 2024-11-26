@@ -464,6 +464,77 @@ auth.put('/profile/:id', async (c) => {
   }
 });
 
+auth.get('/users/search', async (c) => {
+  try {
+    
+    const token = getCookie(c, 'jwt');
+
+    if (!token) {
+      return c.json({ 
+        success: false, 
+        message: 'No token found', 
+        body: null 
+      }, 401);
+    }
+
+    const decoded = await verifyToken(token);
+    const userId = BigInt(decoded.userId);
+
+    const { q } = c.req.query();
+
+    //case sensitive search ga pake mode insensitive
+    const users = await prisma.user.findMany({
+      where: {
+        OR: [
+          {
+            username: {
+              contains: q,
+            }
+          },
+          {
+            fullName: {
+              contains: q,
+            }
+          }
+        ], 
+        AND: [
+          {
+            id: {
+              not: userId
+            }
+          }
+        ]
+      },
+      select: {
+        id: true,
+        username: true,
+        fullName: true,
+        profilePhotoPath: true
+      },
+      take: 10
+    });
+
+    return c.json({
+      success: true,
+      message: 'Search results retrieved successfully',
+      body: {
+        users: users.map(user => ({
+          ...user,
+          id: user.id.toString()
+        }))
+      }
+    });
+
+  } catch (error) {
+    console.error('Search error:', error);
+    return c.json({
+      success: false,
+      message: 'Failed to perform search',
+      body: null
+    }, 500);
+  }
+});
+
 auth.get('/connection-status/:id', async (c) => {
   try {
     const toId = BigInt(c.req.param('id'));
