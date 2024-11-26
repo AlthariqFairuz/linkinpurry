@@ -9,6 +9,10 @@ import { uploadToCloudinary } from '../utils/cloudinary.js';
 
 const auth = new Hono();
 
+BigInt.prototype.toJSON = function() {
+  return this.toString();
+};
+
 // Helper function to generate JWT with exactly 1 hour TTL
 const generateToken = (user: { id: bigint; email: string; username: string; fullName: string | null }) => {
   const secret = process.env.JWT_SECRET;
@@ -638,12 +642,14 @@ auth.get('/network/unconnected', async (c) => {
     return c.json({
       success: true,
       message: 'Connection-status: unconnected',
-      body: { 
-        id: users.map(user => user.id.toString()),
-        fullName: users.map(user => user.fullName),
-        skills: users.map(user => user.skills),
-        workHistory: users.map(user => user.workHistory),
-        profilePhotoPath: users.map(user => user.profilePhotoPath)
+      bbody: {
+        connection: users.map(user => ({
+          id: user.id.toString(),
+          fullName: user.fullName,
+          skills: user.skills,
+          workHistory: user.workHistory,
+          profilePhotoPath: user.profilePhotoPath
+        }))
       }
     });
 
@@ -690,12 +696,14 @@ auth.get('/network/requested', async (c) => {
     return c.json({
       success: true,
       message: 'Connection-status: requested',
-      body: { 
-        id: users.map(user => user.id.toString()),
-        fullName: users.map(user => user.fullName),
-        skills: users.map(user => user.skills),
-        workHistory: users.map(user => user.workHistory),
-        profilePhotoPath: users.map(user => user.profilePhotoPath)
+      body: {
+        connection: users.map(user => ({
+          id: user.id.toString(),
+          fullName: user.fullName,
+          skills: user.skills,
+          workHistory: user.workHistory,
+          profilePhotoPath: user.profilePhotoPath
+        }))
       }
     });
 
@@ -743,11 +751,13 @@ auth.get('/network/incoming-requests', async (c) => {
       success: true,
       message: 'Incoming requests retrieved successfully',
       body: {
-        id: users.map(user => user.id.toString()),
-        fullName: users.map(user => user.fullName),
-        skills: users.map(user => user.skills),
-        workHistory: users.map(user => user.workHistory),
-        profilePhotoPath: users.map(user => user.profilePhotoPath)
+        connection: users.map(user => ({
+          id: user.id.toString(),
+          fullName: user.fullName,
+          skills: user.skills,
+          workHistory: user.workHistory,
+          profilePhotoPath: user.profilePhotoPath
+        }))
       }
     });
 
@@ -796,12 +806,14 @@ auth.get('/network/connected', async (c) => {
     return c.json({
       success: true,
       message: 'Connection-status: connected',
-      body: { 
-        id: users.map(user => user.id.toString()),
-        fullName: users.map(user => user.fullName),
-        skills: users.map(user => user.skills),
-        workHistory: users.map(user => user.workHistory),
-        profilePhotoPath: users.map(user => user.profilePhotoPath)
+      body: {
+        connection: users.map(user => ({
+          id: user.id.toString(),
+          fullName: user.fullName,
+          skills: user.skills,
+          workHistory: user.workHistory,
+          profilePhotoPath: user.profilePhotoPath
+        }))
       }
     });
 
