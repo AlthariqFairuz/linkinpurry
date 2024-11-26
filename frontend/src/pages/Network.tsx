@@ -8,16 +8,19 @@ import { fetchUser } from '@/api/fetchUser';
 import { useEffect, useState } from 'react';
 import { User } from '@/types/User';
 import { NetworkCard } from '@/components/ui/networkcard';
-import { fetchNetwork } from '@/api/fetchNetwork';
+import { fetchUnconnected, fetchRequested, fetchConnected } from '@/api/fetchNetwork';
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import Loading from '@/components/ui/loading';
 
 export default function Network() {
   const [userData, setUserData] = useState<User | null>(null);
-  const [userNetwork, setUserNetwork] = useState(null);
+  const [unconnected, setUnconnected] = useState(null);
+  const [requested, setRequested] = useState(null);
+  const [connected, setConnected] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUserDataAndNetwork = async () => {
+    const fetchDatas = async () => {
       try {
         setIsLoading(true);
         // First get the user ID
@@ -34,9 +37,19 @@ export default function Network() {
         }
 
         // Also fetch network for user
-        const network = await fetchNetwork();
-        if (network) {
-          setUserNetwork(network);
+        const resultUnconnected = await fetchUnconnected();
+        if (resultUnconnected) {
+          setUnconnected(resultUnconnected);
+        }
+
+        const resultRequested = await fetchRequested();
+        if (resultRequested) {
+          setRequested(resultRequested);
+        }
+
+        const resultConnected = await fetchConnected();
+        if (resultConnected) {
+          setConnected(resultConnected);
         }
 
       } catch (error) {
@@ -46,7 +59,7 @@ export default function Network() {
       }
     };
 
-    fetchUserDataAndNetwork();
+    fetchDatas();
   }, []);
 
   if (isLoading) {
@@ -63,14 +76,37 @@ export default function Network() {
             <ProfileCard fullName={userData.fullName} username= {userData.username} email={userData.email} profilePhotoPath={userData.profilePhotoPath}/>
           </div>
 
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow mb-4 p-4">
-              <div className="flex flex-wrap justify-content-space-between gap-4">
-                {userNetwork.connection.map(user => (
-                  <NetworkCard fullName={user.fullName} username={user.username} profilePhotoPath={user.profilePhotoPath} />
+          <div className="lg:col-span-2 space-y-4">
+            <Card>
+              <CardHeader >
+                <CardTitle className="text-left text-lg">Unconnected</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-wrap justify-content-space-between gap-4">
+                {unconnected.connection.map(user => (
+                  <NetworkCard key={"unconnected#"+user.id} userId={user.id} fullName={user.fullName} username={user.username} profilePhotoPath={user.profilePhotoPath} connected={false} requested={false} />
                 ))}
-              </div>
-            </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader >
+                <CardTitle className="text-left text-lg">Connection Requested</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-wrap justify-content-space-between gap-4">
+                {requested.connection.map(user => (
+                  <NetworkCard key={"requested#"+user.id} userId={user.id} fullName={user.fullName} username={user.username} profilePhotoPath={user.profilePhotoPath} connected={false} requested={true} />
+                ))}
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader >
+                <CardTitle className="text-left text-lg">Connected</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-wrap justify-content-space-between gap-4">
+                {connected.connection.map(user => (
+                  <NetworkCard key={"connected#"+user.id} userId={user.id} fullName={user.fullName} username={user.username} profilePhotoPath={user.profilePhotoPath} connected={true} requested={false} />
+                ))}
+              </CardContent>
+            </Card>
           </div>
 
           <div className="lg:col-span-1">
