@@ -136,7 +136,7 @@ export const DetailProfile = () => {
    );
  }
   if (!profileData) {
-   navigate('*');
+   navigate('/notfound');
  }
   return (
    <div className="min-h-screen bg-[#f3f2ef] pb-[68px]">

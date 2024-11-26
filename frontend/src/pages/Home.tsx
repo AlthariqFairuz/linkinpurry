@@ -26,14 +26,6 @@ export default function Home() {
         setIsLoading(true);
         // First get the user ID
         const id = await getUserId();
-        if (!id) {
-          navigate('/login', {
-            state: {
-              message: "Please login to continue"
-            }
-          });
-          return;
-        }
       
         // Then fetch the user details using the ID
         const user = await fetchUser(id);

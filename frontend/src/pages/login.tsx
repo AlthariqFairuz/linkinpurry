@@ -14,6 +14,7 @@ export default function Login() {
   const [successMessage, setSuccessMessage] = useState('');
   const location = useLocation();
   const navigate = useNavigate();
+  
   useEffect(() => {
     if (location.state?.message) {
       setSuccessMessage(location.state.message);

@@ -7,20 +7,13 @@ import NotFound from '@/pages/NotFound';
 import Profile from '../pages/Profile';
 import DetailProfile from '../pages/DetailProfile';
 import Network from '@/pages/Network';
-
-function LoadingSpinner() {
-  return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-    </div>
-  );
-}
+import Loading from '@/components/ui/loading';
 
 function PrivateRoute({ children }) {
   const { isAuthenticated, isLoading } = useAuthCheck();
   
   if (isLoading) {
-    return <LoadingSpinner />;
+    return <Loading isLoading={isLoading} />;
   }
   
   return isAuthenticated ? children : <Navigate to="/login" />;
@@ -30,7 +23,7 @@ function GuestRoute({ children }) {
   const { isAuthenticated, isLoading } = useAuthCheck();
   
   if (isLoading) {
-    return <LoadingSpinner />;
+    return <Loading isLoading={isLoading} />;
   }
   
   return isAuthenticated ? <Navigate to="/home" /> : children;
@@ -44,7 +37,6 @@ export default function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
-
         {/* Guest Routes */}
         <Route path="/login" element={
           <GuestRoute>
