@@ -3,8 +3,8 @@ interface NetworkCardProps {
     fullName: string;
     username: string;
     profilePhotoPath: string;
-    connected: boolean;
-    requested: boolean;
+    connectionStatus: string;
+    handleClick: (id: string) => void;
 }
 
 export default NetworkCardProps;

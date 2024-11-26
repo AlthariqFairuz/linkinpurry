@@ -3,32 +3,34 @@ import { ProfilePicture } from "./profilephoto";
 import NetworkCardProps from '@/types/NetworkCard';
 import { Button } from '@/components/ui/button';
 
-export const NetworkCard = ({ userId, username, fullName, profilePhotoPath, connected, requested }: NetworkCardProps) => {
+export const NetworkCard = ({ userId, username, fullName, profilePhotoPath, connectionStatus, handleClick }: NetworkCardProps) => {
     let button;
-    if (connected) {
-      button = <Button
-        // onClick={onConnect}
-        variant="outline"
-      >
-        <UserPlus style={{display:"inline", verticalAlign:"text-bottom"}} size={16}/>
-        Unconnect
-      </Button>
-    }
-
-    if (!connected && !requested) {
-      button = <Button
-        // onClick={onConnect}
-        variant="outline"
-      >
-        <UserPlus style={{display:"inline", verticalAlign:"text-bottom"}} size={16}/>
-        Connect
-      </Button>
+    switch (connectionStatus) {
+      case ('connected'):
+        button = <Button
+          onClick={() => handleClick(userId)}
+          variant="outline"
+        >
+          <UserPlus style={{display:"inline", verticalAlign:"text-bottom"}} size={16}/>
+          Unconnect
+        </Button>
+        break;
+      case ('unconnected'):
+        button = <Button
+          onClick={() => handleClick(userId)}
+          variant="outline"
+        >
+          <UserPlus style={{display:"inline", verticalAlign:"text-bottom"}} size={16}/>
+          Connect
+        </Button>
+        break;
+      default:
     }
 
     return (
       <div style={{flex: "0 1 calc(34% - 1em)"}} className="bg-white rounded-lg shadow mb-4">
         <img 
-         src="/images/default-background.webp" 
+         src="/images/istri-gw.webp" 
          className="h-24 w-full rounded-t-lg object-cover" 
          alt="Background"
        />

@@ -1,6 +1,6 @@
-import { ApiResponse, User } from '@/types/User';
+import { Network, NetworkApiResponse } from '@/types/Network';
 
-export const fetchUnconnected = async (): Promise<User> => {
+export const fetchUnconnected = async (): Promise<Network> => {
   try {
     const response = await fetch(`http://localhost:3000/api/network/unconnected`, {
       credentials: 'include',
@@ -8,7 +8,7 @@ export const fetchUnconnected = async (): Promise<User> => {
         'Content-Type': 'application/json',
       }
     });
-    const data: ApiResponse = await response.json();
+    const data: NetworkApiResponse = await response.json();
     return data.body;
   } catch (error) {
     console.error('Fetch user error:', error);
@@ -16,7 +16,7 @@ export const fetchUnconnected = async (): Promise<User> => {
   }
 };
 
-export const fetchRequested = async (): Promise<User> => {
+export const fetchRequested = async (): Promise<Network> => {
   try {
     const response = await fetch(`http://localhost:3000/api/network/requested`, {
       credentials: 'include',
@@ -24,7 +24,7 @@ export const fetchRequested = async (): Promise<User> => {
         'Content-Type': 'application/json',
       }
     });
-    const data: ApiResponse = await response.json();
+    const data: NetworkApiResponse = await response.json();
     return data.body;
   } catch (error) {
     console.error('Fetch user error:', error);
@@ -32,7 +32,7 @@ export const fetchRequested = async (): Promise<User> => {
   }
 };
 
-export const fetchConnected = async (): Promise<User> => {
+export const fetchConnected = async (): Promise<Network> => {
   try {
     const response = await fetch(`http://localhost:3000/api/network/connected`, {
       credentials: 'include',
@@ -40,7 +40,7 @@ export const fetchConnected = async (): Promise<User> => {
         'Content-Type': 'application/json',
       }
     });
-    const data: ApiResponse = await response.json();
+    const data: NetworkApiResponse = await response.json();
     return data.body;
   } catch (error) {
     console.error('Fetch user error:', error);

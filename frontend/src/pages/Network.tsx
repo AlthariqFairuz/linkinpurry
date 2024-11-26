@@ -11,6 +11,7 @@ import { NetworkCard } from '@/components/ui/networkcard';
 import { fetchUnconnected, fetchRequested, fetchConnected } from '@/api/fetchNetwork';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import Loading from '@/components/ui/loading';
+import { toast } from '@/hooks/use-toast';
 
 export default function Network() {
   const [userData, setUserData] = useState<User | null>(null);
@@ -18,6 +19,53 @@ export default function Network() {
   const [requested, setRequested] = useState(null);
   const [connected, setConnected] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const unconnectedToRequested = (id: string) => {
+    console.log(unconnected);
+    console.log(requested);
+    const newRequested = [...requested, unconnected.find((user) => user.id == id)];
+    const newUnconnected = unconnected.filter((user) => user.id !== id);
+    setRequested(newRequested);
+    setUnconnected(newUnconnected);
+    console.log(newUnconnected);
+    console.log(newRequested);
+  };
+
+  const handleRequest = async (id: string) => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/connect/${id}`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      const data = await response.json();
+    
+    if (data.success) {
+      toast({
+        title: "Success",
+        description: data.message || "Request successful!",
+        variant: "success",
+      });
+
+      unconnectedToRequested(id);
+    } else {
+      toast({
+        title: "Error",
+        description: data.message,
+        variant: "destructive",
+      });
+    }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to connect: " + error,
+        variant: "destructive",
+      }); 
+    }
+  };
 
   useEffect(() => {
     const fetchDatas = async () => {
@@ -39,19 +87,18 @@ export default function Network() {
         // Also fetch network for user
         const resultUnconnected = await fetchUnconnected();
         if (resultUnconnected) {
-          setUnconnected(resultUnconnected);
+          setUnconnected(resultUnconnected.connection);
         }
 
         const resultRequested = await fetchRequested();
         if (resultRequested) {
-          setRequested(resultRequested);
+          setRequested(resultRequested.connection);
         }
 
         const resultConnected = await fetchConnected();
         if (resultConnected) {
-          setConnected(resultConnected);
+          setConnected(resultConnected.connection);
         }
-
       } catch (error) {
         console.error('Fetch user error:', error);
       } finally {
@@ -82,18 +129,18 @@ export default function Network() {
                 <CardTitle className="text-left text-lg">Unconnected</CardTitle>
               </CardHeader>
               <CardContent className="flex flex-wrap justify-content-space-between gap-4">
-                {unconnected.connection.map(user => (
-                  <NetworkCard key={"unconnected#"+user.id} userId={user.id} fullName={user.fullName} username={user.username} profilePhotoPath={user.profilePhotoPath} connected={false} requested={false} />
+                {unconnected.map(user => (
+                  <NetworkCard key={"unconnected#"+user.id} userId={user.id} fullName={user.fullName} username={user.username} profilePhotoPath={user.profilePhotoPath} connectionStatus={'unconnected'} handleClick={handleRequest} />
                 ))}
               </CardContent>
             </Card>
             <Card>
               <CardHeader >
-                <CardTitle className="text-left text-lg">Connection Requested</CardTitle>
+                <CardTitle className="text-left text-lg">Requested</CardTitle>
               </CardHeader>
               <CardContent className="flex flex-wrap justify-content-space-between gap-4">
-                {requested.connection.map(user => (
-                  <NetworkCard key={"requested#"+user.id} userId={user.id} fullName={user.fullName} username={user.username} profilePhotoPath={user.profilePhotoPath} connected={false} requested={true} />
+                {requested.map(user => (
+                  <NetworkCard key={"requested#"+user.id} userId={user.id} fullName={user.fullName} username={user.username} profilePhotoPath={user.profilePhotoPath} connectionStatus={'unconnected'} />
                 ))}
               </CardContent>
             </Card>
@@ -102,8 +149,8 @@ export default function Network() {
                 <CardTitle className="text-left text-lg">Connected</CardTitle>
               </CardHeader>
               <CardContent className="flex flex-wrap justify-content-space-between gap-4">
-                {connected.connection.map(user => (
-                  <NetworkCard key={"connected#"+user.id} userId={user.id} fullName={user.fullName} username={user.username} profilePhotoPath={user.profilePhotoPath} connected={true} requested={false} />
+                {connected.map(user => (
+                  <NetworkCard key={"connected#"+user.id} userId={user.id} fullName={user.fullName} username={user.username} profilePhotoPath={user.profilePhotoPath} connectionStatus={'unconnected'} />
                 ))}
               </CardContent>
             </Card>

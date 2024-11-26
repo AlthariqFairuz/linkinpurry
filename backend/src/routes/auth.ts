@@ -632,6 +632,12 @@ auth.get('/network/unconnected', async (c) => {
         body: null 
       }, 401);
     }
+
+    const requested = await prisma.connectionRequest.findMany({
+      where: {
+        fromId: userId
+      }
+    });
     
     const connected = await prisma.connection.findMany({
       where: {
@@ -646,11 +652,13 @@ auth.get('/network/unconnected', async (c) => {
       }
     });
     
+    const union = [...new Set([...requested, ...connected])];
+ 
     const connection = await prisma.user.findMany({ 
       where: {
         id: {
           not: userId,
-          notIn: connected.map(conn => conn.toId)
+          notIn: union.map(conn => conn.toId)
         },
       },
       select: {
@@ -811,6 +819,101 @@ auth.get('/network/connected', async (c) => {
       }
     });
 
+  } catch (error) {
+    console.log(error);
+    removeTokenCookie(c);
+    return c.json({ 
+      success: false, 
+      message: 'Invalid token', 
+      body: error
+    }, 401);
+  }
+});
+
+auth.post('/connect/:id', async (c) => {
+  try {
+    const toId = BigInt(c.req.param('id'));
+
+    const toUser = await prisma.user.findUnique({ 
+      where: { id: toId }
+    });
+
+    if (!toUser) {
+      return c.json({ 
+        success: false, 
+        message: 'Invalid user',
+        body: null 
+      }, 401);
+    }
+
+    const token = getCookie(c, 'jwt');
+
+    if (!token) {
+      return c.json({
+        success: false,
+        message: 'No token found',
+        body: null
+      });
+    }
+    const decoded = await verifyToken(token);
+    const userId = decoded.userId;
+    
+    if (userId == toId) {
+      return c.json({
+        success: false,
+        message: 'Target is user',
+        body: null
+      });
+    }
+
+    // check if requested
+    const isRequested = await prisma.connectionRequest.findFirst({ 
+      where: {
+        fromId: userId,
+        toId: toId
+      }
+    });
+
+    // check if connected
+    const isConnected = await prisma.connection.findFirst({ 
+      where: {
+        OR: [
+          {
+            fromId: userId,
+            toId: toId
+          },
+          {
+            toId: userId,
+            fromId: toId
+          }
+        ]
+      }
+    });
+
+    if (isRequested !== null && isConnected !== null) {
+      return c.json({
+        success: false,
+        message: 'Is requested/connected',
+        body: null
+      });
+    }
+
+    // create new request
+    var date = new Date();
+    date.toISOString();
+    await prisma.connectionRequest.create({
+      data: {
+        fromId: userId,
+        toId: toId,
+        createdAt: date
+      }
+    });
+
+    return c.json({
+      success: true,
+      message: "Request Successful",
+      body: null
+    });
   } catch (error) {
     console.log(error);
     removeTokenCookie(c);
