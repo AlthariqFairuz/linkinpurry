@@ -10,7 +10,7 @@ import { ProfilePicture } from '@/components/ui/profilephoto';
 import { Navbar } from '@/components/ui/navbar';
 import Footer from '@/components/ui/footer';
 
-export const ProfileOthers = () => {
+export const DetailProfile = () => {
  const { id } = useParams();
  const [profileData, setProfileData] = useState<User | null>(null);
  const [isLoading, setIsLoading] = useState(true);
@@ -201,4 +201,4 @@ export const ProfileOthers = () => {
    </div>
  );
 };
-export default ProfileOthers;
+export default DetailProfile;

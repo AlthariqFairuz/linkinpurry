@@ -5,7 +5,7 @@ import Register from '../pages/Register';
 import Home from '../pages/Home';
 import NotFound from '@/pages/NotFound';
 import Profile from '../pages/Profile';
-import ProfileOthers from '../pages/ProfileOthers';
+import DetailProfile from '../pages/DetailProfile';
 import Network from '@/pages/Network';
 
 function LoadingSpinner() {
@@ -68,7 +68,7 @@ export default function AppRoutes() {
 
         <Route path='/profile/:id' element={
           <PublicRoute>
-            <ProfileOthers />
+            <DetailProfile />
           </PublicRoute>
         }/>
 

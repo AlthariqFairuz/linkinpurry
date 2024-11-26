@@ -19,6 +19,11 @@ export default {
 			animation: {
 				ripple: 'ripple 0.6s linear',
 			},
+			progress: {
+				'0%': { width: '25%', marginLeft: '0%' },
+				'50%': { width: '25%', marginLeft: '75%' },
+				'100%': { width: '25%', marginLeft: '0%' }
+			},
 		}
 	},
 	plugins: [require("tailwindcss-animate")],

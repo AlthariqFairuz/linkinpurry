@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import { User } from '@/types/User';
 import { NetworkCard } from '@/components/ui/networkcard';
 import { fetchNetwork } from '@/api/fetchNetwork';
+import Loading from '@/components/ui/loading';
 
 export default function Network() {
   const [userData, setUserData] = useState<User | null>(null);
@@ -57,11 +58,7 @@ export default function Network() {
   }
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-gray-600">Loading...</div>
-      </div>
-    );
+    return <Loading isLoading={isLoading} />;
   }
 
   return (

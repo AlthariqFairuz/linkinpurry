@@ -25,6 +25,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from '@/hooks/use-toast';
 import { getImageUrl } from '@/utils/config';
+import Loading from '@/components/ui/loading';
 
 export default function Profile() {
   const [userData, setUserData] = useState<User | null>(null);
@@ -119,11 +120,7 @@ export default function Profile() {
   };
   
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900"></div>
-      </div>
-    );
+    return <Loading isLoading={isLoading} />;
   }
 
 

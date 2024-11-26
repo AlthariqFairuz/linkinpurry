@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react';
 import { User } from '@/types/User';
 import { useToast } from "@/hooks/use-toast";
 import { getImageUrl } from '@/utils/config';
+import Loading from '@/components/ui/loading';
 
 export default function Home() {
   const { toast } = useToast();
@@ -65,11 +66,7 @@ export default function Home() {
   // console.log(userData);
   
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-gray-600">Loading...</div>
-      </div>
-    );
+    return <Loading isLoading={isLoading} />;
   }
 
   return (

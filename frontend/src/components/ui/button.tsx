@@ -58,15 +58,6 @@ const buttonVariants = cva(
           // Add subtle background transition
           "transition-[background,transform,shadow]",
         ].join(" "),
-        ghost: [
-          "text-[#666666]",
-          "hover:bg-[#f3f2ef]",
-          "active:bg-[#e1e1e1]",
-          "focus-visible:ring-[#0a66c2]",
-          // Add fade transition
-          "transition-[background,color,transform]",
-          "hover:text-[#000000]",
-        ].join(" "),
         link: [
           "text-[#0a66c2] underline-offset-4",
           "hover:underline hover:text-[#004182]",
