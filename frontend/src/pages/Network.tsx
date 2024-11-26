@@ -108,7 +108,7 @@ export default function Network() {
     return <Icon className="h-5 w-5" />;
   };
 
-  console.log(unconnectedUsers);
+
   return (
     <div className="min-h-screen bg-[#f3f2ef]">
       <Navbar />
