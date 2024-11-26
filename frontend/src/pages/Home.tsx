@@ -60,6 +60,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#f3f2ef] pb-[68px]">
+      console.log(userData);
       <Navbar />
       <main className="pt-20 pb-8">
         <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -69,6 +70,7 @@ export default function Home() {
               username={userData.username} 
               email={userData.email} 
               profilePhotoPath={userData.profilePhotoPath}
+              connections={userData.connections}
             />
           </div>
 

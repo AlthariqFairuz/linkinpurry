@@ -326,7 +326,8 @@ auth.get('/profile/:id', async (c) => {
           fullName: user.fullName,
           skills: user.skills,
           workHistory: user.workHistory,
-          profilePhotoPath: user.profilePhotoPath
+          profilePhotoPath: user.profilePhotoPath,
+          connections: numberOfConnections
         }
       });
     }

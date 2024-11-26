@@ -5,10 +5,10 @@ import { getUserId } from '@/api/getUserId';
 import { User } from '@/types/User';
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ProfilePicture } from '@/components/ui/profilephoto';
-import { Navbar } from '@/components/ui/navbar';
+import { Navbar } from '@/components/ui/navbar' ;
 import Footer from '@/components/ui/footer';
+import ProfileHeader from '@/components/ui/detailprofilecard';
+import Loading from '@/components/ui/loading';
 
 export const DetailProfile = () => {
  const { id } = useParams();
@@ -82,6 +82,7 @@ export const DetailProfile = () => {
        toast({
          title: "Success",
          description: "Connection request sent",
+         variant: "success",
        });
      } else {
        toast({
@@ -113,6 +114,7 @@ export const DetailProfile = () => {
        toast({
          title: "Success",
          description: "Successfully disconnected",
+         variant: "success",
        });
      } else {
        toast({
@@ -131,76 +133,74 @@ export const DetailProfile = () => {
    }
  };
   if (isLoading) {
-   return (
-     <div className="flex justify-center items-center min-h-screen">
-       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-     </div>
-   );
- }
+    return <Loading isLoading={isLoading} />;
+  }
+
   if (!profileData) {
    navigate('/notfound');
  }
-  return (
-   <div className="min-h-screen bg-[#f3f2ef] pb-[68px]">
-     <Navbar />
-     
-     <main className="pt-20 pb-8">
-       <div className="max-w-3xl mx-auto px-4 space-y-6">
-         {/* Basic Profile Info - Visible to All */}
-         <Card>
-           <CardHeader>
-             <CardTitle>Profile</CardTitle>
-           </CardHeader>
-           <CardContent className="flex items-center space-x-4">
-             <ProfilePicture size="lg" src={profileData.profilePhotoPath} />
-             <div>
-               <h2 className="text-2xl font-bold">{profileData.fullName}</h2>
-               <p className="text-gray-600">{profileData.connections} connections</p>
-               {!isConnected && (
-                 <Button 
-                   onClick={handleConnect}
-                   className="mt-2"
-                 >
-                   Connect
-                 </Button>
-               )}
-               {isConnected && (
-                 <Button 
-                   onClick={handleDisconnect}
-                   variant="destructive"
-                   className="mt-2"
-                 >
-                   Disconnect
-                 </Button>
-               )}
-             </div>
-           </CardContent>
-         </Card>
-          {/* Work History - Visible to All Authenticated Users */}
-         <Card>
-           <CardHeader>
-             <CardTitle>Work History</CardTitle>
-           </CardHeader>
-           <CardContent>
-             <p className="whitespace-pre-wrap">{profileData.workHistory}</p>
-           </CardContent>
-         </Card>
-          {/* Skills - Only Visible to Connected Users */}
-         {isConnected && (
-           <Card>
-             <CardHeader>
-               <CardTitle>Skills</CardTitle>
-             </CardHeader>
-             <CardContent>
-               <p className="whitespace-pre-wrap">{profileData.skills}</p>
-             </CardContent>
-           </Card>
-         )}
-       </div>
-     </main>
-     
-     <Footer />
-   </div>
- );
+
+   return (
+    <div className="min-h-screen bg-[#f3f2ef]">
+      <Navbar />
+      
+      <main className="pt-16 pb-8">
+        <div className="max-w-[1128px] mx-auto px-4 space-y-4">
+          {/* Profile Header */}
+          <ProfileHeader
+            fullName={profileData.fullName}
+            connections={profileData.connections}
+            profilePhotoPath={profileData.profilePhotoPath}
+            isConnected={isConnected}
+            onConnect={handleConnect}
+            onDisconnect={handleDisconnect}
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-[minmax(0,2fr)_1fr] gap-4">
+            <div className="space-y-4">
+              {/* Work History */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg font-semibold">Work History</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="whitespace-pre-wrap text-gray-700">{profileData.workHistory || 'No work history available'}</p>
+                </CardContent>
+              </Card>
+
+              {/* Skills - Only Visible to Connected Users */}
+              {isConnected && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg font-semibold">Skills</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="whitespace-pre-wrap text-gray-700">{profileData.skills || 'No skills listed'}</p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+
+            {/* Right Sidebar (subject to change)*/}
+            <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg font-semibold">Profile Strength</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-600">Intermediate</p>
+                  <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+                    <div className="bg-blue-600 h-2.5 rounded-full w-2/3"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </main>
+      
+      <Footer />
+    </div>
+  );
 };
 export default DetailProfile;

@@ -1,7 +1,7 @@
 import { ProfilePicture } from "./profilephoto";
 import ProfileCardProps from '@/types/ProfileCard';
 
-export const ProfileCard = ({ username, email, fullName, profilePhotoPath }: ProfileCardProps) => {
+export const ProfileCard = ({ username, email, fullName, profilePhotoPath, connections }: ProfileCardProps) => {
     return (
       <div className="bg-white rounded-lg shadow mb-4">
         <img 
@@ -20,8 +20,8 @@ export const ProfileCard = ({ username, email, fullName, profilePhotoPath }: Pro
           </div>
           <div className="border-t border-b py-2 mb-4">
             <div className="text-sm">
-              <p className="text-blue-600 hover:underline cursor-pointer">500+ connections</p>
-              <p className="text-blue-600 hover:underline cursor-pointer mt-1">47 profile views</p>
+              <p className="text-blue-600 hover:underline cursor-pointer">{connections} connections</p>
+              <p className="text-blue-600 hover:underline cursor-pointer mt-1">69 profile views</p>
             </div>
           </div>
         </div>
