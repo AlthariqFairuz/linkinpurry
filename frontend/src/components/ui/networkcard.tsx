@@ -1,51 +1,179 @@
-import { UserPlus } from 'lucide-react';
-import { ProfilePicture } from "./profilephoto";
-import NetworkCardProps from '@/types/NetworkCard';
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
+import { ProfilePicture } from "@/components/ui/profilephoto";
+import { useToast } from "@/hooks/use-toast";
+import NetworkCardProps from "@/types/NetworkCard";
+import { useNavigate } from "react-router-dom"; 
 
-export const NetworkCard = ({ userId, username, fullName, profilePhotoPath, connectionStatus, handleClick }: NetworkCardProps) => {
-    let button;
-    switch (connectionStatus) {
-      case ('connected'):
-        button = <Button
-          onClick={() => handleClick(userId)}
-          variant="outline"
-        >
-          <UserPlus style={{display:"inline", verticalAlign:"text-bottom"}} size={16}/>
-          Unconnect
-        </Button>
-        break;
-      case ('unconnected'):
-        button = <Button
-          onClick={() => handleClick(userId)}
-          variant="outline"
-        >
-          <UserPlus style={{display:"inline", verticalAlign:"text-bottom"}} size={16}/>
-          Connect
-        </Button>
-        break;
-      default:
+export function NetworkCard({
+  userId,
+  fullName,
+  username,
+  profilePhotoPath,
+  connected = false,
+  requested = false,
+  receivedRequest = false,
+  onUpdate
+}: NetworkCardProps) {
+  const { toast } = useToast();
+  const navigate = useNavigate();
+
+  const handleConnect = async () => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/request/${userId}`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "Connection request sent"
+        });
+        onUpdate?.();
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to send connection request",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to send connection request: " + error,
+        variant: "destructive"
+      });
     }
+  };
 
-    return (
-      <div style={{flex: "0 1 calc(34% - 1em)"}} className="bg-white rounded-lg shadow mb-4">
-        <img 
-         src="/images/istri-gw.webp" 
-         className="h-24 w-full rounded-t-lg object-cover" 
-         alt="Background"
-       />
-        <div className="px-4 pb-4">
-          <a className="relative -mt-12 mb-4" href={"/profile/" + userId}>
-            <ProfilePicture size="lg" src={profilePhotoPath} />
-          </a>
-          <div className="mb-4">
-            <h2 className="text-gray-900 text-xl font-bold">{fullName}</h2>
-            <p className="text-sm text-gray-500 mt-1">{username}</p>
+  const handleAccept = async () => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/accept-request/${userId}`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "Connection request accepted"
+        });
+        onUpdate?.();
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to accept request",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to accept request: " + error,
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDecline = async () => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/decline-request/${userId}`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "Connection request declined"
+        });
+        onUpdate?.();
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to decline request",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to decline request: " + error,
+        variant: "destructive"
+      });
+    }
+  };
+
+  return (
+    <div className="flex items-start gap-3">
+      <div className="cursor-pointer" onClick={() => navigate(`/profile/${userId}`)}>
+        <ProfilePicture src={profilePhotoPath} size="lg" />
+      </div>
+      
+      <div className="flex-1 min-w-0">
+        <div 
+          className="font-medium text-black hover:text-blue-600 cursor-pointer truncate"
+          onClick={() => navigate(`/profile/${userId}`)}
+        >
+          {fullName || 'No Name'}
+        </div>
+        {username && (
+          <div className="text-sm text-gray-500 truncate">
+            @{username}
           </div>
+        )}
+        
+        <div className="mt-2 space-x-2">
+          {!connected && !requested && !receivedRequest && (
+            <Button 
+              variant="outline" 
+              onClick={handleConnect}
+              className="rounded-full"
+            >
+              Connect
+            </Button>
+          )}
           
-          {button}
+          {requested && (
+            <Button 
+              variant="outline"
+              className="rounded-full"
+              disabled
+            >
+              Pending
+            </Button>
+          )}
 
+          {receivedRequest && (
+            <>
+              <Button 
+                variant="default"
+                onClick={handleAccept}
+                className="rounded-full"
+              >
+                Accept
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={handleDecline}
+                className="rounded-full"
+              >
+                Decline
+              </Button>
+            </>
+          )}
+
+          {connected && (
+            <Button 
+              variant="outline"
+              className="rounded-full"
+              disabled
+            >
+              Connected
+            </Button>
+          )}
         </div>
       </div>
-    );
-  };    
+    </div>
+  );
+}

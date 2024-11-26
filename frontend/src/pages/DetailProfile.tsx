@@ -9,6 +9,8 @@ import { Navbar } from '@/components/ui/navbar' ;
 import Footer from '@/components/ui/footer';
 import ProfileHeader from '@/components/ui/detailprofilecard';
 import Loading from '@/components/ui/loading';
+import { useAuthCheck } from '@/hooks/useAuthCheck';
+import Navigation from '@/components/ui/navigation';
 
 export const DetailProfile = () => {
  const { id } = useParams();
@@ -17,7 +19,7 @@ export const DetailProfile = () => {
  const [isConnected, setIsConnected] = useState<boolean>(false);
  const { toast } = useToast();
  const navigate = useNavigate();
-
+ const { isAuthenticated } = useAuthCheck();
   useEffect(() => {
    const loadData = async () => {
      try {
@@ -44,8 +46,8 @@ export const DetailProfile = () => {
          const connectionStatus = await fetch(`http://localhost:3000/api/connection-status/${id}`, {
            credentials: 'include'
          });
-         const { isConnected: connectionResult } = await connectionStatus.json();
-         setIsConnected(connectionResult);
+         const isConnected = await connectionStatus.json();
+         setIsConnected(isConnected.body.connected);
        } 
        else {
          toast({
@@ -70,7 +72,7 @@ export const DetailProfile = () => {
 
   const handleConnect = async () => {
    try {
-     const response = await fetch(`http://localhost:3000/api/connect/${id}`, {
+     const response = await fetch(`http://localhost:3000/api/request/${id}`, {
        method: 'POST',
        credentials: 'include',
        headers: {
@@ -142,7 +144,7 @@ export const DetailProfile = () => {
 
    return (
     <div className="min-h-screen bg-[#f3f2ef] pt-8">
-      <Navbar />
+      {isAuthenticated? <Navbar /> : <Navigation />  }
       
       <main className="pt-16 pb-8">
         <div className="max-w-[1128px] mx-auto px-4 space-y-4">

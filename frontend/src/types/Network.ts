@@ -1,13 +1,16 @@
-import { User } from '@/types/User';
-
-export interface Network {
-  connection: User[];
+export interface NetworkResponse {
+  id: string;
+  fullName: string | null;
+  username: string;
+  skills: string | null;
+  workHistory: string | null;  
+  profilePhotoPath: string;
 }
 
 export interface NetworkApiResponse {
     success: boolean;
     message: string;
     body: {
-      connection: User[];
+      connection: NetworkResponse[];
     } | null;
 }

@@ -633,6 +633,7 @@ auth.get('/network/unconnected', async (c) => {
       select: {
         id: true,
         fullName: true,
+        username: true,
         skills: true,
         workHistory: true,
         profilePhotoPath: true,
@@ -646,6 +647,7 @@ auth.get('/network/unconnected', async (c) => {
         connection: users.map(user => ({
           id: user.id.toString(),
           fullName: user.fullName,
+          username: user.username,
           skills: user.skills,
           workHistory: user.workHistory,
           profilePhotoPath: user.profilePhotoPath
@@ -687,6 +689,7 @@ auth.get('/network/requested', async (c) => {
       select: {
         id: true,
         fullName: true,
+        username: true,
         skills: true,
         workHistory: true,
         profilePhotoPath: true,
@@ -700,6 +703,7 @@ auth.get('/network/requested', async (c) => {
         connection: users.map(user => ({
           id: user.id.toString(),
           fullName: user.fullName,
+          username: user.username,
           skills: user.skills,
           workHistory: user.workHistory,
           profilePhotoPath: user.profilePhotoPath
@@ -741,6 +745,7 @@ auth.get('/network/incoming-requests', async (c) => {
       select: {
         id: true,
         fullName: true,
+        username: true,
         skills: true,
         workHistory: true,
         profilePhotoPath: true,
@@ -754,6 +759,7 @@ auth.get('/network/incoming-requests', async (c) => {
         connection: users.map(user => ({
           id: user.id.toString(),
           fullName: user.fullName,
+          username: user.username,
           skills: user.skills,
           workHistory: user.workHistory,
           profilePhotoPath: user.profilePhotoPath
@@ -797,6 +803,7 @@ auth.get('/network/connected', async (c) => {
       select: {
         id: true,
         fullName: true,
+        username: true,
         skills: true,
         workHistory: true,
         profilePhotoPath: true,
@@ -810,6 +817,7 @@ auth.get('/network/connected', async (c) => {
         connection: users.map(user => ({
           id: user.id.toString(),
           fullName: user.fullName,
+          username: user.username,
           skills: user.skills,
           workHistory: user.workHistory,
           profilePhotoPath: user.profilePhotoPath
@@ -987,6 +995,65 @@ auth.post('/decline-request/:id', async (c) => {
     return c.json({ 
       success : false, 
       message: 'Failed to decline request: ' + error, 
+      body: error 
+    }, 500);
+  }
+});
+
+auth.post('/disconnect/:id', async (c) => {
+  try {
+    const token = getCookie(c, 'jwt');
+    if (!token) {
+      return c.json({ 
+        success: false, 
+        message: 'No token found', 
+        body: null 
+      }, 401);
+    }
+
+    const decoded = await verifyToken(token);
+    const fromId = BigInt(decoded.userId);
+    const toId = BigInt(c.req.param('id'));
+
+    // Check if connection exists (in either direction since connections are bidirectional)
+    const existingConnection = await prisma.connection.findFirst({
+      where: {
+        OR: [
+          { fromId, toId },
+          { fromId: toId, toId: fromId }
+        ]
+      }
+    });
+
+    if (!existingConnection) {
+      return c.json({
+        success: false,
+        message: 'Connection not found',
+        body: null
+      }, 404);
+    }
+
+    // Delete the connection
+    await prisma.connection.delete({
+      where: {
+        fromId_toId: {
+          fromId: existingConnection.fromId,
+          toId: existingConnection.toId
+        }
+      }
+    });
+
+    return c.json({
+      success: true,
+      message: 'Connection removed successfully',
+      body: null
+    });
+
+  } catch (error) {
+    console.error('Remove connection error:', error);
+    return c.json({ 
+      success: false, 
+      message: 'Failed to remove connection', 
       body: error 
     }, 500);
   }
