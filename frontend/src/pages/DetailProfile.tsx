@@ -9,8 +9,6 @@ import { Navbar } from '@/components/ui/navbar' ;
 import Footer from '@/components/ui/footer';
 import ProfileHeader from '@/components/ui/detailprofilecard';
 import Loading from '@/components/ui/loading';
-import { useAuthCheck } from '@/hooks/useAuthCheck';
-import Navigation from '@/components/ui/navigation';
 
 export const DetailProfile = () => {
  const { id } = useParams();
@@ -19,7 +17,6 @@ export const DetailProfile = () => {
  const [isConnected, setIsConnected] = useState<boolean>(false);
  const { toast } = useToast();
  const navigate = useNavigate();
- const { isAuthenticated } = useAuthCheck();
   useEffect(() => {
    const loadData = async () => {
      try {
@@ -144,7 +141,7 @@ export const DetailProfile = () => {
 
    return (
     <div className="min-h-screen bg-[#f3f2ef] pt-8">
-      {isAuthenticated? <Navbar /> : <Navigation />  }
+     <Navbar />
       
       <main className="pt-16 pb-8">
         <div className="max-w-[1128px] mx-auto px-4 space-y-4">

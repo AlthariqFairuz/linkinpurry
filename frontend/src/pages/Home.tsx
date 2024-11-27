@@ -53,15 +53,11 @@ export default function Home() {
       id: 2,
     }
   ];
-
-  if (isLoading) {
-    return <LoadingComponent />;
-  }
-
+  
   return (
     <div className="min-h-screen bg-[#f3f2ef] pb-[68px]">
       <Navbar />
-      
+
       {isLoading ? <LoadingComponent /> : (
         <main className="pt-20 pb-8">
           <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-4 gap-6">

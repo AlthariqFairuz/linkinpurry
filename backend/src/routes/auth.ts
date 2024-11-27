@@ -463,19 +463,6 @@ auth.put('/profile/:id', async (c) => {
 auth.get('/users/search', async (c) => {
   try {
 
-    const token = getCookie(c, 'jwt');
-
-    if (!token) {
-      return c.json({ 
-        success: false, 
-        message: 'No token found', 
-        body: null 
-      }, 401);
-    }
-
-    const decoded = await verifyToken(token);
-    const userId = BigInt(decoded.userId);
-
     const { q } = c.req.query();
 
     //case sensitive search ga pake mode insensitive
@@ -493,13 +480,6 @@ auth.get('/users/search', async (c) => {
             }
           }
         ], 
-        AND: [
-          {
-            id: {
-              not: userId
-            }
-          }
-        ]
       },
       select: {
         id: true,

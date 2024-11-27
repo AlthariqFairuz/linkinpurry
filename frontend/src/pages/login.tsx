@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navigation from '@/components/ui/navigation';
 import { Card, CardContent, CardTitle, CardDescription, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import { Navbar } from '@/components/ui/navbar';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -56,9 +56,9 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f3f2ef]">
+    <div className="min-h-screen bg-[#f3f2ef] pt-16">
       {/* Navigation */}
-      <Navigation />
+      <Navbar />
 
       {/* Main Content */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">

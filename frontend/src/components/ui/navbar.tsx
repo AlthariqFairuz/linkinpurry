@@ -1,4 +1,4 @@
-import { Users, MessageSquare, Bookmark, Menu, Search, Home, User } from 'lucide-react';
+import { Users, MessageSquare, Menu, Search, Home, User } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from 'react-router-dom';
@@ -8,16 +8,11 @@ import { ToastAction } from '@radix-ui/react-toast';
 import { Card } from './card';
 import { ProfilePicture } from './profilephoto';
 import debounce from 'lodash/debounce';
-
-type SearchResult = {
-  id: string;
-  fullName: string;
-  username?: string;
-  profilePhotoPath: string;
-};
-
+import { isLoggedIn } from '@/api/isLoggedIn';
+import { SearchResult } from '@/types/SearchResult';
 
 export const Navbar = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
@@ -81,6 +76,14 @@ export const Navbar = () => {
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const loggedIn = await isLoggedIn();
+      setIsAuthenticated(loggedIn);
+    };
+    checkAuth();
   }, []);
 
   const handleSearch = (query: string) => {
@@ -150,8 +153,8 @@ export const Navbar = () => {
           action: <ToastAction altText="Try again" onClick={handleLogout}>Try again</ToastAction>
         }); 
       }
-    };
-  
+    };;
+
     const handleHome = () => {
       navigate('/home');
     };
@@ -242,55 +245,68 @@ export const Navbar = () => {
               {/* Navigation Icons */}
               <div className="flex items-center space-x-1">
 
-                {/* Home */}
-                <div className="inline-flex flex-col items-center p-2 hover:text-gray-900 text-gray-500 cursor-pointer relative group"
-                  onClick={handleHome}>
-                  <Home className="w-6 h-6" strokeWidth={1.5} />
-                  <span className="text-xs mt-0.5">Home</span>
-                  <div className="absolute bottom-0 left-0 w-full h-0.5 bg-black transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
-                </div>
 
                 {/* Network */}
-                <div className="inline-flex flex-col items-center p-2 hover:text-gray-900 text-gray-500 cursor-pointer relative group"
-                  onClick={handleNetwork}
-                >
-                  <Users className="w-6 h-6" strokeWidth={1.5} />
-                  <span className="text-xs mt-0.5">Network</span>
-                  <div className="absolute bottom-0 left-0 w-full h-0.5 bg-black transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
-                </div>
+                {isAuthenticated && (
+                <>
+                  {/* Home */}
+                  <div className="inline-flex flex-col items-center p-2 hover:text-gray-900 text-gray-500 cursor-pointer relative group"
+                    onClick={handleHome}>
+                    <Home className="w-6 h-6" strokeWidth={1.5} />
+                    <span className="text-xs mt-0.5">Home</span>
+                    <div className="absolute bottom-0 left-0 w-full h-0.5 bg-black transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
+                  </div>
 
-                 {/* Messages */}
-                <div className="inline-flex flex-col items-center p-2 hover:text-gray-900 text-gray-500 cursor-pointer relative group">
-                  <MessageSquare className="w-6 h-6" strokeWidth={1.5} />
-                  <span className="text-xs mt-0.5">Messages</span>
-                  <div className="absolute bottom-0 left-0 w-full h-0.5 bg-black transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
-                </div>
+                  {/* Network */}
+                  <div className="inline-flex flex-col items-center p-2 hover:text-gray-900 text-gray-500 cursor-pointer relative group"
+                    onClick={handleNetwork}>
+                    <Users className="w-6 h-6" strokeWidth={1.5} />
+                    <span className="text-xs mt-0.5">Network</span>
+                    <div className="absolute bottom-0 left-0 w-full h-0.5 bg-black transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
+                  </div>
 
-                {/* Bookmarks */}
-                {/* <div className="inline-flex flex-col items-center p-2 hover:text-gray-900 text-gray-500 cursor-pointer relative group">
-                  <Bookmark className="w-6 h-6" strokeWidth={1.5} />
-                  <span className="text-xs mt-0.5">Bookmarks</span>
-                  <div className="absolute bottom-0 left-0 w-full h-0.5 bg-black transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
-                </div> */}
+                  {/* Messages */}
+                  <div className="inline-flex flex-col items-center p-2 hover:text-gray-900 text-gray-500 cursor-pointer relative group">
+                    <MessageSquare className="w-6 h-6" strokeWidth={1.5} />
+                    <span className="text-xs mt-0.5">Messages</span>
+                    <div className="absolute bottom-0 left-0 w-full h-0.5 bg-black transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
+                  </div>
 
-                 {/* Profile Section */}
-                <div className="h-8 w-px bg-gray-200 mx-2"></div>
+                  {/* Profile */}
+                  <div className="inline-flex flex-col items-center p-2 pr-3 hover:text-gray-900 text-gray-500 cursor-pointer relative group"
+                    onClick={handleProfile}>
+                    <User className="w-6 h-6" strokeWidth={1.5} />
+                    <span className="text-xs mt-0.5">Me</span>
+                    <div className="absolute bottom-0 left-0 w-full h-0.5 bg-black transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
+                  </div>
 
-                <div className="inline-flex flex-col items-center p-2 pr-3 hover:text-gray-900 text-gray-500 cursor-pointer relative group"
-                onClick={handleProfile}>
-                  <User className="w-6 h-6" strokeWidth={1.5} />
-                  <span className="text-xs mt-0.5">Me</span>
-                <div className="absolute bottom-0 left-0 w-full h-0.5 bg-black transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
-              </div>
-              <Button
-                variant="default"
-                onClick={handleLogout}
-                className="mx-3"
-                >
-                Logout
-              </Button>
+                  {/* Logout Button */}
+                  <Button
+                    variant="default"
+                    onClick={handleLogout}
+                    className="mx-3">
+                    Logout
+                  </Button>
+                </>
+                )}
             </div>
           </div>
+
+          {!isAuthenticated && (
+            <div className="hidden sm:flex items-center space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => navigate('/login')}>
+                Login
+              </Button>
+              <Button
+                variant="default"
+                onClick={() => navigate('/register')}>
+                Register
+              </Button>
+            </div>
+          )}
+
           {/* Mobile Menu Button */}
           <div className="sm:hidden flex items-center">
             <Menu 
@@ -306,39 +322,50 @@ export const Navbar = () => {
           <div className="pt-2 pb-3 space-y-1">
 
             {/* Home */ }
+            {isAuthenticated && (
             <div className="flex items-center px-4 py-2 text-gray-500 hover:text-gray-900 hover:bg-gray-50"
               onClick={handleHome}>
               <Home className="w-6 h-6 mr-3" strokeWidth={1.5} />
               <span>Home</span>
             </div>
+            )}
 
             {/* Network */}
+            {isAuthenticated && (
             <div className="flex items-center px-4 py-2 text-gray-500 hover:text-gray-900 hover:bg-gray-50"
               onClick={handleNetwork}>
               <Users className="w-6 h-6 mr-3" strokeWidth={1.5} />
               <span>Network</span>
             </div>
+            )}
 
-              {/* Messages */}
+            {/* Messages */}
+            {isAuthenticated && (
             <div className="flex items-center px-4 py-2 text-gray-500 hover:text-gray-900 hover:bg-gray-50">
               <MessageSquare className="w-6 h-6 mr-3" strokeWidth={1.5} />
               <span>Messages</span>
             </div>
+            )}
 
-              {/* Bookmarks */}
-            <div className="flex items-center px-4 py-2 text-gray-500 hover:text-gray-900 hover:bg-gray-50">
+            {/* Bookmarks */}
+            {/* {isAuthenticated && (
+            <div   className="flex items-center px-4 py-2 text-gray-500 hover:text-gray-900 hover:bg-gray-50">
               <Bookmark className="w-6 h-6 mr-3" strokeWidth={1.5} />
               <span>Bookmarks</span>
             </div>
+            )} */}
 
-              {/* Profile */}
-              <div className="flex items-center px-4 py-2 text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+            {/* Profile */}
+            {isAuthenticated && (
+            <div className="flex items-center px-4 py-2 text-gray-500 hover:text-gray-900 hover:bg-gray-50"
               onClick={handleProfile}>
               <User className="w-6 h-6 mr-3" strokeWidth={1.5} />
               <span>Me</span>
             </div>
+            )}
 
-              {/* Mobile Logout */}
+            {/* Mobile Logout */}
+            {isAuthenticated && (
             <div className="px-4 py-2">
               <Button
                 variant="default"
@@ -346,6 +373,24 @@ export const Navbar = () => {
                 Logout
               </Button>
             </div>
+            )}
+
+            {!isAuthenticated && (
+              <div className="px-4 py-2 space-y-2">
+                <Button
+                  variant="outline"
+                  onClick={() => navigate('/login')}
+                  className="w-full">
+                  Login
+                </Button>
+                <Button
+                  variant="default"
+                  onClick={() => navigate('/register')}
+                  className="w-full">
+                  Register
+                </Button>
+              </div>
+            )}
           </div>
         </div>
         )}
