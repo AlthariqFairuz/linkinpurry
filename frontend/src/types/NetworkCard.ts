@@ -5,9 +5,9 @@ interface NetworkCardProps {
     fullName: string | null;
     username?: string;
     profilePhotoPath: string;
-    connected?: boolean;
     requested?: boolean;
     receivedRequest?: boolean;
+    showDisconnect?: boolean;
     onUpdate?: () => void;
   }
 export default NetworkCardProps;

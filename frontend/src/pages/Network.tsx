@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/ui/navbar';
 import Footer from '@/components/ui/footer';
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,10 +13,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown, Users, UserPlus, UserCheck, Clock } from "lucide-react";
 import { NetworkResponse, NetworkApiResponse } from '@/types/Network';
+import LoadingComponent from '@/components/ui/loadingcomponent';
 
 type NetworkSection = 'unconnected' | 'requested' | 'received' | 'connected';
 
 export default function Network() {
+  const navigate = useNavigate();
   const [networkData, setNetworkData] = useState<{
     unconnected: NetworkResponse[];
     requested: NetworkResponse[];
@@ -96,6 +99,11 @@ export default function Network() {
   const handleNetworkUpdate = async () => {
     await fetchNetworkData();
   };
+
+  if (error) {
+   navigate('/notfound');
+   console.error(error);
+  }
 
   return (
     <div className="min-h-screen bg-[#f3f2ef]">
@@ -185,13 +193,9 @@ export default function Network() {
           </div>
 
           {/* Content Section */}
-          {isLoading ? (
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-            </div>
-          ) : error ? (
-            <div className="text-center py-12 text-red-500">{error}</div>
-          ) : (
+          {isLoading ? ( 
+            <LoadingComponent />
+          ): (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {getCurrentData().length > 0 ? (
                 getCurrentData().map((user) => (
@@ -202,10 +206,10 @@ export default function Network() {
                         fullName={user.fullName || 'No Name'}
                         username={user.username}
                         profilePhotoPath={user.profilePhotoPath}
-                        connected={section === 'connected'}
                         requested={section === 'requested'}
                         receivedRequest={section === 'received'}
                         onUpdate={handleNetworkUpdate}
+                        showDisconnect={section === 'connected'}
                       />
                     </CardContent>
                   </Card>

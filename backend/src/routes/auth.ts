@@ -673,6 +673,7 @@ auth.get('/network/requested', async (c) => {
           },
           {
             NOT: {
+              // current user Belum terhubung dengan user X secara timbal balik
               OR: [
                 { receivedConnections: { some: { fromId: userId } } },
                 { sentConnections: { some: { toId: userId } } }
@@ -739,6 +740,7 @@ auth.get('/network/incoming-requests', async (c) => {
           },
           {
             NOT: {
+              // sama juga, current user Belum terhubung dengan user X secara timbal balik
               OR: [
               { receivedConnections: { some: { fromId: userId } } },
                 { sentConnections: { some: { toId: userId } } }
@@ -952,11 +954,19 @@ auth.post('/accept-request/:id', async (c) => {
 
     // bikin connection dan delete request dalam transaction
     await prisma.$transaction([
+      // Create connection from requester to accepter
       prisma.connection.create({
         data: { fromId, toId, createdAt: new Date() }
       }),
+      // Create mutual connection from accepter to requester
+      prisma.connection.create({
+        data: { fromId: toId, toId: fromId, createdAt: new Date() }
+      }),
+      // Delete any connection requests in either direction
       prisma.connectionRequest.delete({
-        where: { fromId_toId: { fromId, toId } }
+        where: {
+          fromId_toId: { fromId, toId }
+        }
       })
     ]);
 

@@ -9,9 +9,9 @@ export function NetworkCard({
   fullName,
   username,
   profilePhotoPath,
-  connected = false,
   requested = false,
   receivedRequest = false,
+  showDisconnect,
   onUpdate
 }: NetworkCardProps) {
   const { toast } = useToast();
@@ -42,6 +42,43 @@ export function NetworkCard({
       toast({
         title: "Error",
         description: "Failed to send connection request: " + error,
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDisconnect = async () => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/disconnect/${userId}`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to disconnect');
+      }
+  
+      const data = await response.json();
+      
+      if (data.success) {
+        toast({
+          title: "Success",
+          description: "Successfully disconnected",
+          variant: "success"
+        });
+
+        onUpdate?.();
+      } else {
+        throw new Error(data.message || 'Failed to disconnect');
+      }
+    } catch (error) {
+      console.error('Disconnect error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to disconnect. Please try again.",
         variant: "destructive"
       });
     }
@@ -127,7 +164,7 @@ export function NetworkCard({
         )}
         
         <div className="mt-2 space-x-2">
-          {!connected && !requested && !receivedRequest && (
+          {!showDisconnect && !requested && !receivedRequest && (
             <Button 
               variant="outline" 
               onClick={handleConnect}
@@ -156,6 +193,7 @@ export function NetworkCard({
               >
                 Accept
               </Button>
+
               <Button 
                 variant="outline"
                 onClick={handleDecline}
@@ -166,13 +204,13 @@ export function NetworkCard({
             </>
           )}
 
-          {connected && (
+          {showDisconnect && (
             <Button 
-              variant="outline"
+              variant="destructive"
               className="rounded-full"
-              disabled
+              onClick={handleDisconnect}
             >
-              Connected
+              Disconnect
             </Button>
           )}
         </div>
