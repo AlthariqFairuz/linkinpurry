@@ -16,20 +16,24 @@ import { NetworkResponse, NetworkApiResponse } from '@/types/Network';
 type NetworkSection = 'unconnected' | 'requested' | 'received' | 'connected';
 
 export default function Network() {
-  const [unconnectedUsers, setUnconnectedUsers] = useState<NetworkResponse[]>([]);
-  const [requestedUsers, setRequestedUsers] = useState<NetworkResponse[]>([]);
-  const [receivedUsers, setReceivedUsers] = useState<NetworkResponse[]>([]);
-  const [connectedUsers, setConnectedUsers] = useState<NetworkResponse[]>([]);
+  const [networkData, setNetworkData] = useState<{
+    unconnected: NetworkResponse[];
+    requested: NetworkResponse[];
+    received: NetworkResponse[];
+    connected: NetworkResponse[];
+  }>({
+    unconnected: [],
+    requested: [],
+    received: [],
+    connected: []
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [section, setSection] = useState<NetworkSection>('unconnected');
-  const [counts, setCounts] = useState({
-    unconnected: 0,
-    requested: 0,
-    received: 0,
-    connected: 0
-  });
+  const [error, setError] = useState<string | null>(null);
 
-  const fetchUsers = async () => {
+  const fetchNetworkData = async () => {
+    setIsLoading(true);
+    setError(null);
     try {
       const responses = await Promise.all([
         fetch('http://localhost:3000/api/network/unconnected', { credentials: 'include' }),
@@ -37,48 +41,29 @@ export default function Network() {
         fetch('http://localhost:3000/api/network/incoming-requests', { credentials: 'include' }),
         fetch('http://localhost:3000/api/network/connected', { credentials: 'include' })
       ]);
-      
-      const [unconnectedUsers, requestedUsers, receivedUsers, connectedUsers] = await Promise.all(
-        responses.map(r => r.json())
-      ) as NetworkApiResponse[];
-      console.log(unconnectedUsers);
-      setUnconnectedUsers(unconnectedUsers.body?.connection || []);
-      setRequestedUsers(requestedUsers.body?.connection || []);
-      setReceivedUsers(receivedUsers.body?.connection || []);
-      setConnectedUsers(connectedUsers.body?.connection || []);
-    } catch (error) {
-      console.error('Error fetching counts:', error);
-    }
-  };
 
-  const fetchCounts = async () => {
-    try {
-      const responses = await Promise.all([
-        fetch('http://localhost:3000/api/network/unconnected', { credentials: 'include' }),
-        fetch('http://localhost:3000/api/network/requested', { credentials: 'include' }),
-        fetch('http://localhost:3000/api/network/incoming-requests', { credentials: 'include' }),
-        fetch('http://localhost:3000/api/network/connected', { credentials: 'include' })
-      ]);
-      
-      const [unconnected, requested, received, connected] = await Promise.all(
-        responses.map(r => r.json())
-      ) as NetworkApiResponse[];
+      const [unconnectedData, requestedData, receivedData, connectedData] = 
+        await Promise.all(responses.map(r => r.json())) as NetworkApiResponse[];
 
-      setCounts({
-        unconnected: unconnected.body?.connection.length || 0,
-        requested: requested.body?.connection.length || 0,
-        received: received.body?.connection.length || 0,
-        connected: connected.body?.connection.length || 0
+      setNetworkData({
+        unconnected: unconnectedData.body?.connection || [],
+        requested: requestedData.body?.connection || [],
+        received: receivedData.body?.connection || [],
+        connected: connectedData.body?.connection || []
       });
     } catch (error) {
-      console.error('Error fetching counts:', error);
+      console.error('Error fetching network data:', error);
+      setError('Failed to load network data. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchUsers();
-    fetchCounts();
-  }, [section]);
+    fetchNetworkData();
+  }, []);
+
+  const getCurrentData = () => networkData[section] || [];
 
   const sectionConfig = {
     unconnected: {
@@ -105,9 +90,12 @@ export default function Network() {
 
   const getCurrentIcon = () => {
     const Icon = sectionConfig[section].icon;
-    return <Icon className="h-5 w-5" />;
+    return <Icon className="h-5 w-5 text-[#0a66c2]" />;
   };
 
+  const handleNetworkUpdate = async () => {
+    await fetchNetworkData();
+  };
 
   return (
     <div className="min-h-screen bg-[#f3f2ef]">
@@ -119,11 +107,25 @@ export default function Network() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div className="flex items-center gap-3">
               {getCurrentIcon()}
-              <h1 className="text-xl sm:text-2xl font-semibold">{sectionConfig[section].title}</h1>
+              <h1 className="text-xl sm:text-2xl font-semibold text-gray-900">{sectionConfig[section].title}</h1>
             </div>
 
             <DropdownMenu>
-              <DropdownMenuTrigger className="inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium bg-white border border-gray-200 hover:bg-gray-50 w-full sm:w-auto">
+              <DropdownMenuTrigger className={[
+                "inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium w-full sm:w-auto",
+                "bg-[#0a66c2] text-white",
+                "hover:bg-[#004182]",
+                "active:bg-[#00294e]",
+                "focus-visible:ring-2 focus-visible:ring-[#0a66c2] focus-visible:ring-offset-2",
+                "disabled:pointer-events-none disabled:opacity-50",
+                "shadow-sm hover:shadow-md",
+                "transition-all duration-200 ease-in-out",
+                "relative overflow-hidden",
+                "before:absolute before:inset-0 before:bg-gradient-to-t before:from-transparent before:to-white/10",
+                "before:opacity-0 hover:before:opacity-100",
+                "before:transition-opacity before:duration-200",
+                "hover:transform hover:scale-[1.02] active:scale-[0.98]",
+              ].join(" ")}>
                 <span className="flex items-center justify-between w-full">
                   <span>Manage network</span>
                   <ChevronDown className="ml-2 h-4 w-4" />
@@ -135,11 +137,11 @@ export default function Network() {
                   className="flex items-center justify-between"
                 >
                   <span className="flex items-center gap-2">
-                    <Users className="h-4 w-4" />
+                    <Users className="h-4 w-4 " />
                     Suggestions
                   </span>
-                  {counts.unconnected > 0 && (
-                    <Badge variant="secondary">{counts.unconnected}</Badge>
+                  {networkData.unconnected.length > 0 && (
+                    <Badge variant="secondary">{networkData.unconnected.length}</Badge>
                   )}
                 </DropdownMenuItem>
                 <DropdownMenuItem 
@@ -150,8 +152,8 @@ export default function Network() {
                     <UserPlus className="h-4 w-4" />
                     Sent
                   </span>
-                  {counts.requested > 0 && (
-                    <Badge variant="secondary">{counts.requested}</Badge>
+                  {networkData.requested.length > 0 && (
+                    <Badge variant="secondary">{networkData.requested.length}</Badge>
                   )}
                 </DropdownMenuItem>
                 <DropdownMenuItem 
@@ -162,8 +164,8 @@ export default function Network() {
                     <Clock className="h-4 w-4" />
                     Received
                   </span>
-                  {counts.received > 0 && (
-                    <Badge variant="secondary">{counts.received}</Badge>
+                  {networkData.received.length > 0 && (
+                    <Badge variant="secondary">{networkData.received.length}</Badge>
                   )}
                 </DropdownMenuItem>
                 <DropdownMenuItem 
@@ -174,8 +176,8 @@ export default function Network() {
                     <UserCheck className="h-4 w-4" />
                     Connected
                   </span>
-                  {counts.connected > 0 && (
-                    <Badge variant="secondary">{counts.connected}</Badge>
+                  {networkData.connected.length > 0 && (
+                    <Badge variant="secondary">{networkData.connected.length}</Badge>
                   )}
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -187,27 +189,26 @@ export default function Network() {
             <div className="flex justify-center items-center h-64">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
             </div>
+          ) : error ? (
+            <div className="text-center py-12 text-red-500">{error}</div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {section === 'unconnected' ? (
-                unconnectedUsers.map((user) => (
+              {getCurrentData().length > 0 ? (
+                getCurrentData().map((user) => (
                   <Card key={user.id} className="overflow-hidden">
-                  <CardContent className="p-4">
-                    <NetworkCard
-                      userId={user.id}
-                      fullName={user.fullName || 'No Name'}
-                      username={user.username}
-                      profilePhotoPath={user.profilePhotoPath}
-                      connected={section === 'connected'}
-                      requested={section === 'requested'}
-                      receivedRequest={section === 'received'}
-                      onUpdate={() => {
-                        fetchUsers();
-                        fetchCounts();  
-                      }}
-                    />
-                  </CardContent>
-                </Card>
+                    <CardContent className="p-4">
+                      <NetworkCard
+                        userId={user.id}
+                        fullName={user.fullName || 'No Name'}
+                        username={user.username}
+                        profilePhotoPath={user.profilePhotoPath}
+                        connected={section === 'connected'}
+                        requested={section === 'requested'}
+                        receivedRequest={section === 'received'}
+                        onUpdate={handleNetworkUpdate}
+                      />
+                    </CardContent>
+                  </Card>
                 ))
               ) : (
                 <div className="col-span-full text-center py-12 text-gray-500">

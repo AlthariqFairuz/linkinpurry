@@ -27,7 +27,8 @@ export function NetworkCard({
       if (response.ok) {
         toast({
           title: "Success",
-          description: "Connection request sent"
+          description: "Connection request sent",
+          variant: "success"
         });
         onUpdate?.();
       } else {
@@ -56,7 +57,8 @@ export function NetworkCard({
       if (response.ok) {
         toast({
           title: "Success",
-          description: "Connection request accepted"
+          description: "Connection request accepted",
+          variant: "success"
         });
         onUpdate?.();
       } else {
@@ -85,7 +87,8 @@ export function NetworkCard({
       if (response.ok) {
         toast({
           title: "Success",
-          description: "Connection request declined"
+          description: "Connection request declined",
+          variant: "success"
         });
         onUpdate?.();
       } else {
