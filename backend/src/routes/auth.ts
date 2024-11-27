@@ -614,27 +614,35 @@ auth.get('/network/unconnected', async (c) => {
     const decoded = await verifyToken(token);
     const userId = BigInt(decoded.userId);
 
-    const users = await prisma.user.findMany({ 
-      where: {
-        id: { not: userId },
-        // current user Belum mengirim request ke user X
-        sentRequests: { none: { fromId: userId } },
-        // user X Belum menerima request dari current user
-        receivedRequests: { none: { fromId: userId } },
-        // current user Belum terhubung dengan user X
-        sentConnections: { none: { toId: userId } },
-        // user X Belum terhubung dengan current user
-        receivedConnections: { none: { fromId: userId } }
-      },
-      select: {
-        id: true,
-        fullName: true,
-        username: true,
-        skills: true,
-        workHistory: true,
-        profilePhotoPath: true,
+const users = await prisma.user.findMany({ 
+  where: {
+    AND: [
+      { id: { not: userId } },  // Not the current user
+      {
+        NOT: {
+          OR: [
+            // current user Belum mengirim request ke user X
+            { receivedRequests: { some: { fromId: userId } } },
+            // user X Belum menerima request dari current user
+            { sentRequests: { some: { toId: userId } } },
+            // current user Belum terhubung dengan user X
+            { receivedConnections: { some: { fromId: userId } } },
+            // user X Belum terhubung dengan current user
+            { sentConnections: { some: { toId: userId } } }
+          ]
+        }
       }
-    });
+    ]
+  },
+  select: {
+    id: true,
+    fullName: true,
+    username: true,
+    skills: true,
+    workHistory: true,
+    profilePhotoPath: true,
+  }
+});
 
     return c.json({
       success: true,
@@ -675,12 +683,23 @@ auth.get('/network/requested', async (c) => {
 
     const users = await prisma.user.findMany({ 
       where: {
-        receivedRequests: {
-          // kalau ngequery make relations = harus ada keyword some/none/every
-          some: {
-            fromId: userId
+        AND: [
+          { 
+            receivedRequests: { 
+              some: { 
+                fromId: userId 
+              } 
+            } 
+          },
+          {
+            NOT: {
+              OR: [
+                { receivedConnections: { some: { fromId: userId } } },
+                { sentConnections: { some: { toId: userId } } }
+              ]
+            }
           }
-        }
+        ]
       },
       select: {
         id: true,
@@ -731,13 +750,24 @@ auth.get('/network/incoming-requests', async (c) => {
 
     const users = await prisma.user.findMany({ 
       where: {
-        // cek incoming requests
-        sentRequests: {
-          some: {
-            toId: userId
+        AND: [
+          { sentRequests: {
+            some: {
+              toId: userId
+            }
           }
-        }
+          },
+          {
+            NOT: {
+              OR: [
+              { receivedConnections: { some: { fromId: userId } } },
+                { sentConnections: { some: { toId: userId } } }
+              ]
+            }
+          }
+        ]
       },
+      // cek incoming requests
       select: {
         id: true,
         fullName: true,
@@ -854,11 +884,14 @@ auth.post('/request/:id', async (c) => {
     }
 
     // cek apakah user X ada dan apakah sudah requested/connected
-    const [targetUser, existingRequest, existingConnection] = await Promise.all([
+    const [targetUser, existingRequest, existingRequest2, existingConnection] = await Promise.all([
       prisma.user.findUnique({ where: { id: toId } }), // cek apakah user X ada
       prisma.connectionRequest.findFirst({  
         where: { fromId, toId }
       }), // cek apakah current user sudah mengirim request ke user X
+      prisma.connectionRequest.findFirst({
+        where: { fromId: toId, toId: fromId }
+      }), // cek apakah user X sudah mengirim request ke current user
       prisma.connection.findFirst({ 
         where: { 
           // cek apakah current user sudah terhubung dengan user X
@@ -878,7 +911,7 @@ auth.post('/request/:id', async (c) => {
       }, 401);
     }
 
-    if (existingRequest || existingConnection) {
+    if (existingRequest || existingRequest2 || existingConnection) {
       return c.json({
         success: false,
         message: 'Already requested or connected',
