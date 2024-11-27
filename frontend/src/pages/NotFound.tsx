@@ -1,19 +1,16 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { HomeIcon } from 'lucide-react';
-import Navigation from '@/components/ui/navigation';
 import Footer from '@/components/ui/footer';
-import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { Navbar } from '@/components/ui/navbar';
 
 export default function NotFound() {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuthCheck();
 
   return (
     <div className="min-h-screen bg-[#f3f2ef]">
       {/* Navigation */}
-      {isAuthenticated? <Navbar /> : <Navigation />}
+      <Navbar />
       
       {/* Main Content */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">

@@ -10,7 +10,7 @@ import { fetchUser } from '@/api/fetchUser';
 import { useEffect, useState } from 'react';
 import { User } from '@/types/User';
 import { useToast } from "@/hooks/use-toast"
-import Loading from '@/components/ui/loading';
+import LoadingComponent from '@/components/ui/loadingcomponent';
 
 export default function Home() {
   const { toast } = useToast();
@@ -55,16 +55,17 @@ export default function Home() {
   ];
 
   if (isLoading) {
-    return <Loading isLoading={isLoading} />;
+    return <LoadingComponent />;
   }
 
   return (
     <div className="min-h-screen bg-[#f3f2ef] pb-[68px]">
-      console.log(userData);
       <Navbar />
-      <main className="pt-20 pb-8">
-        <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-4 gap-6">
-          <div className="lg:col-span-1">
+      
+      {isLoading ? <LoadingComponent /> : (
+        <main className="pt-20 pb-8">
+          <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <div className="lg:col-span-1">
             <ProfileCard 
               fullName={userData.fullName} 
               username={userData.username} 
@@ -92,9 +93,11 @@ export default function Home() {
           <div className="lg:col-span-1">
             <Sidebar />
           </div>
-        </div>
-      </main>
+          </div>
+        </main>
+      )}
       <Footer />
     </div>
+
   );
 }

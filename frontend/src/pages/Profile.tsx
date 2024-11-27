@@ -24,7 +24,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from '@/hooks/use-toast';
-import Loading from '@/components/ui/loading';
+import LoadingComponent from '@/components/ui/loadingcomponent';
 
 export default function Profile() {
   const [userData, setUserData] = useState<User | null>(null);
@@ -123,17 +123,14 @@ export default function Profile() {
       });
     }
   };
-  
-  if (isLoading) {
-    return <Loading isLoading={isLoading} />;
-  }
 
   return (
     <div className="min-h-screen bg-[#f3f2ef] pb-[68px]">
       <Navbar/>   
-      <main className="pt-20 pb-8">
-        <div className="max-w-3xl mx-auto px-4 space-y-6">
-          <Card>
+      {isLoading ? <LoadingComponent /> : (
+        <main className="pt-20 pb-8">
+          <div className="max-w-3xl mx-auto px-4 space-y-6">
+            <Card>
             <CardHeader>
               <CardTitle>Profile Photo</CardTitle>
             </CardHeader>
@@ -302,7 +299,8 @@ export default function Profile() {
             </CardContent>
           </Card>
         </div>
-      </main>
+        </main>
+      )}
       <Footer />
     </div>
   );
