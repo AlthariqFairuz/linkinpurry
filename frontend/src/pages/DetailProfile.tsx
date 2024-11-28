@@ -76,7 +76,6 @@ export const DetailProfile = () => {
           }
         } else {
           toast({
-            title: "Error",
             description: "User does not exist",
             variant: "destructive",
           });

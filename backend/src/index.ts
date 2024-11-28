@@ -2,7 +2,9 @@ import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { config } from 'dotenv';
-import auth from './routes/auth.js';
+import auth from './api/api.js';
+import { swaggerUI } from '@hono/swagger-ui';
+import { swaggerConfig } from './swagger.js';
 
 // load env
 config();
@@ -21,6 +23,10 @@ app.use('/*', cors(corsOptions));
 // app.get('/', (c) => {
 //   return c.json({ status: 'ok', message: 'Server is running' });
 // });
+
+// Serve Swagger UI
+app.get('/swagger', swaggerUI({ url: '/docs' }));
+app.get('/docs', (c) => c.json(swaggerConfig));
 
 // Mount auth routes
 app.route('/api', auth);
