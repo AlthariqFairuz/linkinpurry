@@ -79,6 +79,18 @@ const buttonVariants = cva(
           // Smooth border and background transitions
           "transition-[border,background,transform,shadow]",
         ].join(" "),
+        bar: [
+          "flex-1 justify-start",
+          "bg-white text-[#666666] rounded-full border-[#e1e1e1]",
+          "hover:bg-[#f3f2ef] hover:border-[#0a66c2]/30",
+          "active:bg-[#e1e1e1]",
+          "focus-visible:ring-[#0a66c2]",
+          // Add rotate animation for icons
+          "[&_svg]:transition-transform [&_svg]:duration-200",
+          "hover:[&_svg]:rotate-12",
+          // Smooth border and background transitions
+          "transition-[border,background,transform,shadow]",
+        ].join(" "),
       },
       size: {
         default: "h-9 px-4 py-2 text-base",

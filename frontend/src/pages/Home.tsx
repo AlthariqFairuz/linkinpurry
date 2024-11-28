@@ -1,3 +1,4 @@
+import { X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Footer from '@/components/ui/footer';
 import { ProfileCard } from '@/components/ui/profilecard';
@@ -11,13 +12,64 @@ import { useEffect, useState } from 'react';
 import { User } from '@/types/User';
 import { useToast } from "@/hooks/use-toast"
 import LoadingComponent from '@/components/ui/loadingcomponent';
+import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Textarea } from '@/components/ui/textarea';
 
 export default function Home() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [userData, setUserData] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [createPostText, setCreatePostText] = useState<string>('');
 
+  const handleCreatePost = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/api/feed', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          createPostText
+        }),
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        toast({
+          title: "Success",
+          description: "Create post success",
+          variant: "success",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to create post",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create post",
+        variant: "destructive",
+      });
+    } finally {
+      setCreatePostText('');
+    }
+  };
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -75,9 +127,49 @@ export default function Home() {
             <div className="bg-white rounded-lg shadow mb-4 p-4">
               <div className="flex gap-4">
                 <ProfilePicture size="sm" src={userData.profilePhotoPath}/>
-                <button className="flex-1 text-left px-4 py-2.5 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200">
-                  Start a post
-                </button>
+                <AlertDialog className="w-full">
+                  <AlertDialogTrigger asChild>
+                    <Button variant="bar" className="w-full sm:w-auto">Start a post</Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent className="max-w-[75%]">
+                    <AlertDialogHeader className="text-black">
+                      <AlertDialogDescription className="hidden"></AlertDialogDescription>
+                      <div className="flex gap-x-4">
+                        <ProfilePicture size="sm" src={userData.profilePhotoPath}/>
+                        <AlertDialogTitle className="inline text-2xl md:text-3xl font-semibold text-gray-900 text-left ">
+                          {userData.fullName} 
+                        </AlertDialogTitle>
+                        <AlertDialogCancel class="absolute right-2 sm:right-4 md:right-4 lg:right-6 bg-white border-none"
+                          onClick={() => setCreatePostText('')}
+                        >
+                          <X/>
+                        </AlertDialogCancel>
+                      </div>
+                    </AlertDialogHeader>
+
+                    <div className="space-y-2">
+                      <Textarea
+                        value={createPostText}
+                        onChange={(e) => setCreatePostText(e.target.value)}
+                        maxlength="280"
+                        placeholder="What do you want to talk about?"
+                        className="h-[25vh] text-black"
+                        style={{fontSize: "18px"}}
+                      />
+                    </div>
+                    
+                    <div className="flex justify-end">
+                      <AlertDialogAction
+                        onClick={() => handleCreatePost()}
+                        className="rounded-full"
+                        disabled={createPostText==''}
+                      >
+                        Post
+                      </AlertDialogAction>
+                    </div>
+
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             </div>
 
