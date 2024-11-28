@@ -2,17 +2,19 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ProfilePicture } from '@/components/ui/profilephoto';
 import { Clock } from "lucide-react";
-import ProfileHeaderProps from "@/types/ProfileHeader";
+import DetailProfileHeaderProps from "@/types/DetailProfileHeader";
 
-const ProfileHeader = ({ 
+const DetailProfileHeader = ({ 
   fullName, 
   connections, 
   profilePhotoPath,
   connectionStatus,
   isLoggedIn,
   onConnect, 
+  onAccept,
+  onDecline,
   onDisconnect 
-}: ProfileHeaderProps) => {
+}: DetailProfileHeaderProps) => {
   const renderConnectionButton = () => {
     if (!isLoggedIn) {
       return (
@@ -36,7 +38,7 @@ const ProfileHeader = ({
             Disconnect
           </Button>
         );
-      case 'pending':
+      case 'pending-sent':
         return (
           <Button 
             variant="secondary"
@@ -46,6 +48,24 @@ const ProfileHeader = ({
             <Clock className="mr-2 h-4 w-4" />
             Pending
           </Button>
+        );
+      case 'pending-received':
+        return (
+          <>
+            <Button 
+              onClick={onAccept}
+              className="mx-2 rounded-full"
+            >
+              Accept
+            </Button>
+            <Button 
+              onClick={onDecline}
+              variant="outline"
+              className="mx-2 rounded-full"
+            >
+              Decline
+            </Button>
+          </>
         );
       default:
         return (
@@ -95,4 +115,4 @@ const ProfileHeader = ({
   );
 };
 
-export default ProfileHeader;
+export default DetailProfileHeader;

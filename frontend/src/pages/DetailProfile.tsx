@@ -7,17 +7,16 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Navbar } from '@/components/ui/navbar';
 import Footer from '@/components/ui/footer';
-import ProfileHeader from '@/components/ui/detailprofilecard';
+import DetailProfileHeader from '@/components/ui/detailprofileheader';
 import LoadingComponent from '@/components/ui/loadingcomponent';
-
-type ConnectionStatus = 'unconnected' | 'pending' | 'connected';
+import { ConnectionStatusDetailProfile } from '@/types/DetailProfileHeader';
 
 export const DetailProfile = () => {
   const { id } = useParams();
   const [profileData, setProfileData] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('unconnected');
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatusDetailProfile>('unconnected');
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -60,16 +59,30 @@ export const DetailProfile = () => {
               if (connectionData.body.connected) {
                 setConnectionStatus('connected');
               } else {
-                // Check if there's a pending request
-                const pendingResponse = await fetch(`http://localhost:3000/api/network/requested`, {
-                  credentials: 'include'
-                });
-                if (pendingResponse.ok) {
-                  const pendingData = await pendingResponse.json();
-                  const isPending = pendingData.body.connection.some(
+                // cek apakah sudah mengirim request atau sudah menerima request
+                const [sentResponse, receivedResponse] = await Promise.all([
+                  fetch(`http://localhost:3000/api/network/requested`, {
+                    credentials: 'include'
+                  }),
+                  fetch(`http://localhost:3000/api/network/incoming-requests`, {
+                    credentials: 'include'
+                  })
+                ]);
+            
+                if (sentResponse.ok && receivedResponse.ok) {
+                  const sentData = await sentResponse.json();
+                  const receivedData = await receivedResponse.json();
+            
+                  const hasSentRequest = sentData.body.connection.some(
                     (user: { id: string }) => user.id === id
                   );
-                  setConnectionStatus(isPending ? 'pending' : 'unconnected');
+                  const hasReceivedRequest = receivedData.body.connection.some(
+                    (user: { id: string }) => user.id === id
+                  );
+            
+                  setConnectionStatus(
+                    hasSentRequest ? 'pending-sent' : hasReceivedRequest ? 'pending-received' : 'unconnected'
+                  );
                 }
               }
             }
@@ -82,7 +95,6 @@ export const DetailProfile = () => {
         }
       } catch (error) {
         console.error('Error loading profile:', error);
-        // Don't show error toast for unauthorized users
         if (isLoggedIn) {
           toast({
             title: "Error",
@@ -114,7 +126,7 @@ export const DetailProfile = () => {
       });
       
       if (response.ok) {
-        setConnectionStatus('pending');
+        setConnectionStatus('pending-sent');
         toast({
           title: "Success",
           description: "Connection request sent",
@@ -132,6 +144,74 @@ export const DetailProfile = () => {
       toast({
         title: "Error",
         description: "An error occurred while sending the connection request",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleAccept = async () => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/accept-request/${id}`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (response.ok) {
+        setConnectionStatus('connected');
+        toast({
+          title: "Success",
+          description: "Connection request accepted",
+          variant: "success",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to accept connection request",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Accept request error:', error);
+      toast({
+        title: "Error",
+        description: "An error occurred while accepting the connection request",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  const handleDecline = async () => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/decline-request/${id}`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (response.ok) {
+        setConnectionStatus('unconnected');
+        toast({
+          title: "Success",
+          description: "Connection request declined",
+          variant: "success",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to decline connection request",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Decline request error:', error);
+      toast({
+        title: "Error",
+        description: "An error occurred while declining the connection request",
         variant: "destructive",
       });
     }
@@ -191,13 +271,15 @@ export const DetailProfile = () => {
         <main className="pt-16 pb-8">
           <div className="max-w-[1128px] mx-auto px-4 space-y-4">
             {/* Profile Header */}
-            <ProfileHeader
+            <DetailProfileHeader
               fullName={profileData.fullName}
               connections={profileData.connections}
               profilePhotoPath={profileData.profilePhotoPath}
               connectionStatus={connectionStatus}
               isLoggedIn={isLoggedIn}
               onConnect={handleConnect}
+              onAccept={handleAccept}
+              onDecline={handleDecline}
               onDisconnect={handleDisconnect}
             />
 
