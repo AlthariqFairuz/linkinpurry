@@ -1053,12 +1053,12 @@ auth.post('/disconnect/:id', async (c) => {
     }
 
     // Delete the connection
-    await prisma.connection.delete({
+    await prisma.connection.deleteMany({
       where: {
-        fromId_toId: {
-          fromId: existingConnection.fromId,
-          toId: existingConnection.toId
-        }
+        OR: [
+          { fromId, toId },
+          { fromId: toId, toId: fromId }
+        ]
       }
     });
 
