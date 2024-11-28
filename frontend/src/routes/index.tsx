@@ -8,6 +8,7 @@ import Profile from '../pages/Profile';
 import DetailProfile from '../pages/DetailProfile';
 import Network from '@/pages/Network';
 import Loading from '@/components/ui/loading';
+import ChatInterface from '@/pages/Chat';
 
 function PrivateRoute({ children }) {
   const { isAuthenticated, isLoading } = useAuthCheck();
@@ -81,6 +82,13 @@ export default function AppRoutes() {
           <GuestRoute>
             <Login />
           </GuestRoute>
+        } />
+
+        {/* Chat Route */}
+        <Route path="/chat" element={
+          <PrivateRoute>
+            <ChatInterface />
+          </PrivateRoute>
         } />
 
         {/* Not Found Route */}
