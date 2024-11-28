@@ -160,6 +160,15 @@ export const DetailProfile = () => {
       });
       
       if (response.ok) {
+
+        // update profile data with new connection count
+        if(id){
+          const updatedUserData = await fetchUser(id);
+          if (updatedUserData) {
+            setProfileData(updatedUserData); 
+          }
+        }
+
         setConnectionStatus('connected');
         toast({
           title: "Success",
@@ -229,6 +238,14 @@ export const DetailProfile = () => {
       
       if (response.ok) {
         setConnectionStatus('unconnected');
+
+        if(id){
+          const updatedUserData = await fetchUser(id);
+          if (updatedUserData) {
+            setProfileData(updatedUserData); 
+          }
+        }
+
         toast({
           title: "Success",
           description: "Successfully disconnected",
