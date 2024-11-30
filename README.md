@@ -7,3 +7,5 @@ Things to do in milestone 1:
 How to access docs:
 - localhost:3000/swagger (with GUI)
 - localhost:3000/docs (pure JSON)
+
+Why hono? https://medium.com/deno-the-complete-reference/deno-express-vs-fastify-vs-oak-vs-hono-whos-runs-fastest-0657d791c17a
