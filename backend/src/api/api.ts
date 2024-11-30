@@ -52,7 +52,7 @@ const removeTokenCookie = (c: Context) => {
 };
 
 // Verify JWT token from cookie
-const verifyToken = (token: string): Promise<any> => {
+export const verifyToken = (token: string): Promise<any> => {
   const secret = process.env.JWT_SECRET;
   if (!secret) {
     throw new Error('JWT_SECRET is not defined');
@@ -1078,4 +1078,54 @@ auth.post('/disconnect/:id', async (c) => {
   }
 });
 
+auth.get('/chat/history/:userId', async (c) => {
+  try {
+    const userId = c.req.param('userId');
+    const token = getCookie(c, 'jwt');
+    
+    if (!token) {
+      return c.json({ 
+        success: false, 
+        message: 'Unauthorized', 
+        body: null 
+      }, 401);
+    }
+
+    const decoded = await verifyToken(token);
+    const currentUserId = decoded.userId;
+
+    const messages = await prisma.chat.findMany({
+      where: {
+        OR: [
+          { fromId: BigInt(currentUserId), toId: BigInt(userId) },
+          { fromId: BigInt(userId), toId: BigInt(currentUserId) }
+        ]
+      },
+      orderBy: {
+        timestamp: 'asc'
+      }
+    });
+
+    return c.json({
+      success: true,
+      message: 'Chat history retrieved successfully',
+      body: {
+        messages: messages.map(msg => ({
+          ...msg,
+          id: msg.id.toString(),
+          fromId: msg.fromId.toString(),
+          toId: msg.toId.toString(),
+          timestamp: msg.timestamp.toISOString() 
+        }))
+      }
+    });
+  } catch (error) {
+    console.error('Chat history error:', error);
+    return c.json({ 
+      success: false, 
+      message: 'Failed to fetch chat history', 
+      body: null 
+    }, 500);
+  }
+});
 export default auth;
