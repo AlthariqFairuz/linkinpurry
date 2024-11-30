@@ -1,7 +1,11 @@
 export interface ChatMessage {
-    id: number
-    sender: string
-    content: string
-    timestamp: string
-    isMe: boolean
-}
+    id: string;
+    fromId?: string;
+    toId?: string;
+    sender: string;
+    content: string;
+    timestamp: string;
+    isMe: boolean;
+    read: boolean;
+    readAt: Date | null;
+  }

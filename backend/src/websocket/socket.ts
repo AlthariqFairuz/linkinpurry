@@ -78,33 +78,29 @@ export function initializeWebSocket(httpServer: HttpServer) {
         }
     
         // Create complete message object
-        const completeMessage: ChatMessage = {
-          fromId,
-          toId: data.toId,
-          message: trimmedMessage,
-          timestamp: new Date()
-        };
-    
-        // Save message to database
         const chatMessage = await prisma.chat.create({
           data: {
-            fromId: BigInt(completeMessage.fromId),
-            toId: BigInt(completeMessage.toId),
-            message: completeMessage.message,
-            timestamp: completeMessage.timestamp
+            fromId: BigInt(fromId),
+            toId: BigInt(data.toId),
+            message: trimmedMessage,
+            timestamp: new Date(),
+            read: false
           }
         });
+
     
         const messagePayload = {
           id: chatMessage.id.toString(),
-          fromId: completeMessage.fromId,
-          toId: completeMessage.toId,
-          message: completeMessage.message,
-          timestamp: chatMessage.timestamp
+          fromId,
+          toId: data.toId,
+          message: trimmedMessage,
+          timestamp: chatMessage.timestamp,
+          read: false,
+          readAt: null
         };
-    
+
         // Get recipient's socket info
-        const recipientStatus = activeUsers.get(completeMessage.toId);
+        const recipientStatus = activeUsers.get(data.toId);
         
         // Emit to recipient if online
         if (recipientStatus?.socketId) {
@@ -115,12 +111,109 @@ export function initializeWebSocket(httpServer: HttpServer) {
         socket.emit('message_sent', messagePayload);
     
       } catch (error) {
-        console.error('Error handling private message:', error);
         socket.emit('error', { 
           message: 'Failed to send message',
           error: error instanceof Error ? error.message : 'Unknown error',
           data: data
         });
+      }
+    });
+
+    // New handler for marking messages as read
+    socket.on('mark_messages_read', async (data: { conversationId: string, messageIds: string[] }) => {
+      try {
+        let userId: string | undefined;
+        for (const [id, status] of activeUsers.entries()) {
+          if (status.socketId === socket.id) {
+            userId = id;
+            break;
+          }
+        }
+
+        if (!userId || !data.messageIds.length) {
+          throw new Error('Invalid read receipt data');
+        }
+
+        const now = new Date();
+
+        // Update messages in database
+        await prisma.chat.updateMany({
+          where: {
+            id: {
+              in: data.messageIds.map(id => BigInt(id))
+            },
+            toId: BigInt(userId),
+            read: false
+          },
+          data: {
+            read: true,
+            readAt: now
+          }
+        });
+
+        // Notify sender that messages were read
+        const firstMessage = await prisma.chat.findFirst({
+          where: {
+            id: BigInt(data.messageIds[0])
+          }
+        });
+
+        if (firstMessage) {
+          const senderStatus = activeUsers.get(firstMessage.fromId.toString());
+          if (senderStatus?.socketId) {
+            io.to(senderStatus.socketId).emit('messages_read', {
+              conversationId: data.conversationId,
+              messageIds: data.messageIds,
+              readAt: now
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error marking messages as read:', error);
+      }
+    });
+
+    // Update chat history endpoint to include read status
+    socket.on('get_chat_history', async (conversationId: string) => {
+      try {
+        let userId: string | undefined;
+        for (const [id, status] of activeUsers.entries()) {
+          if (status.socketId === socket.id) {
+            userId = id;
+            break;
+          }
+        }
+
+        if (!userId) {
+          throw new Error('User not authenticated');
+        }
+
+        const messages = await prisma.chat.findMany({
+          where: {
+            OR: [
+              { fromId: BigInt(userId), toId: BigInt(conversationId) },
+              { fromId: BigInt(conversationId), toId: BigInt(userId) }
+            ]
+          },
+          orderBy: {
+            timestamp: 'asc'
+          }
+        });
+
+        socket.emit('chat_history', {
+          conversationId,
+          messages: messages.map(msg => ({
+            id: msg.id.toString(),
+            fromId: msg.fromId.toString(),
+            toId: msg.toId.toString(),
+            message: msg.message,
+            timestamp: msg.timestamp,
+            read: msg.read,
+            readAt: msg.readAt
+          }))
+        });
+      } catch (error) {
+        console.error('Error fetching chat history:', error);
       }
     });
 
