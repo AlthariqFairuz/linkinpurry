@@ -6,6 +6,7 @@ import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import { prisma } from '../db/connections.js';
 import { uploadToCloudinary } from '../utils/cloudinary.js';
+import type { JWTPayload } from '../types/JWTPayload.js';
 
 const auth = new Hono();
 
@@ -52,7 +53,7 @@ const removeTokenCookie = (c: Context) => {
 };
 
 // Verify JWT token from cookie
-export const verifyToken = (token: string): Promise<any> => {
+export const verifyToken = (token: string): Promise<JWTPayload> => {
   const secret = process.env.JWT_SECRET;
   if (!secret) {
     throw new Error('JWT_SECRET is not defined');
@@ -61,7 +62,11 @@ export const verifyToken = (token: string): Promise<any> => {
   return new Promise((resolve, reject) => {
     jwt.verify(token, secret, (err, decoded) => {
       if (err) reject(err);
-      resolve(decoded);
+      if (!decoded || typeof decoded === 'string') {
+        reject(new Error('Invalid token payload'));
+      } else {
+        resolve(decoded as JWTPayload);
+      }
     });
   });
 };
@@ -93,13 +98,13 @@ const registerSchema = z.object({
     .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
   
   confirmPassword: z.string()
-}).refine((data) => data.password === data.confirmPassword, {
+}).refine((data) => data.password === data.confirmPassword, { // refine for custom validation
   message: "Passwords don't match",
   path: ["confirmPassword"], 
 });
 
 // Add verify endpoint
-auth.get('/verify', async (c) => {
+auth.get('/verify', async (c : Context) => {
   try {
     const token = getCookie(c, 'jwt');
     
@@ -129,9 +134,10 @@ auth.get('/verify', async (c) => {
         token,
         id: decoded.userId,
         email: decoded.email,
+        username: decoded.username,
         fullName: decoded.fullName
       }
-    });
+    }, 200);
   } catch (error) {
     removeTokenCookie(c);
     return c.json({ 
@@ -148,10 +154,10 @@ auth.post('/logout', (c) => {
     success: true, 
     message: 'Logged out successfully', 
     body: null 
-  });
+  }, 200);
 });
 
-auth.post('/register', async (c) => {
+auth.post('/register', async (c : Context) => {
   try {
     const body = await c.req.json();
 
@@ -208,7 +214,7 @@ auth.post('/register', async (c) => {
        success: true,
        message: "Registration Successful",
        body: null
-     });
+     }, 200);
    } catch (error) {
      return c.json({ 
        success: false, 
@@ -218,7 +224,7 @@ auth.post('/register', async (c) => {
    }
  });
 
- auth.post('/login', async (c) => {
+ auth.post('/login', async (c : Context) => {
   try {
     const { email, password } = await c.req.json();
 
@@ -257,11 +263,11 @@ auth.post('/register', async (c) => {
 
     return c.json({
       success: true,
-      message: `Welcome back, ${user.fullName}!`,
+      message: `Welcome back, ${user.username}!`,
       body: {
         token
       }
-    });
+    }, 200);
   } catch (error) {
     console.error('Login error:', error);
     return c.json({ 
@@ -272,7 +278,7 @@ auth.post('/register', async (c) => {
   }
 });
 
-auth.get('/profile/:id', async (c) => {
+auth.get('/profile/:id', async (c : Context) => {
   try {
 
     const userId = BigInt(c.req.param('id'));
@@ -308,11 +314,13 @@ auth.get('/profile/:id', async (c) => {
           profilePhotoPath: user.profilePhotoPath,
           connections: numberOfConnections
         }
-      });
+      }, 200);
     }
-    const decoded = await verifyToken(token);
     
-    if (decoded.userId == userId) {
+    const decoded = await verifyToken(token);
+    const decodedUserId = BigInt(decoded.userId);
+    
+    if (decodedUserId == userId) {
       return c.json({
         success: true,
         message: 'Owner profile',
@@ -325,7 +333,7 @@ auth.get('/profile/:id', async (c) => {
           profilePhotoPath: user.profilePhotoPath,
           connections: numberOfConnections
         }
-      });
+      }, 200);
     }
 
     else {
@@ -339,7 +347,7 @@ auth.get('/profile/:id', async (c) => {
           profilePhotoPath: user.profilePhotoPath,
           connections: numberOfConnections
         }
-      });
+      }, 200);
     } 
 
   } catch (error) {
@@ -352,7 +360,7 @@ auth.get('/profile/:id', async (c) => {
   }
 });
 
-auth.put('/profile/:id', async (c) => {
+auth.put('/profile/:id', async (c : Context) => {
   try {
     const token = getCookie(c, 'jwt');
 
@@ -448,7 +456,7 @@ auth.put('/profile/:id', async (c) => {
         workHistory: updatedUser.workHistory,
         profilePhotoPath: updatedUser.profilePhotoPath
       }
-    });
+    }, 200);
 
   } catch (error) {
     console.error('Update error:', error);
@@ -460,7 +468,7 @@ auth.put('/profile/:id', async (c) => {
   }
 });
 
-auth.get('/users/search', async (c) => {
+auth.get('/users/search', async (c : Context) => {
   try {
 
     const { q } = c.req.query();
@@ -496,10 +504,10 @@ auth.get('/users/search', async (c) => {
       body: {
         users: users.map(user => ({
           ...user,
-          id: user.id.toString()
+          id: user.id.toString() // convert bigint to string or else it will be an error
         }))
       }
-    });
+    }, 200);
 
   } catch (error) {
     console.error('Search error:', error);
@@ -511,7 +519,7 @@ auth.get('/users/search', async (c) => {
   }
 });
 
-auth.get('/connection-status/:id', async (c) => {
+auth.get('/connection-status/:id', async (c : Context) => {
   try {
     const toId = BigInt(c.req.param('id'));
 
@@ -537,27 +545,27 @@ auth.get('/connection-status/:id', async (c) => {
     }
     
     const decoded = await verifyToken(token);
-    const userId = decoded.userId;
+    const decodedUserId = BigInt(decoded.userId);
 
-    if (userId == toId) {
+    if (decodedUserId == toId) {
       return c.json({
         success: true,
         message: 'Self connection',
         body: {
           connected: true
         }
-      });
+      }, 200);
     }
 
     const connection = await prisma.connection.findFirst({ 
       where: {
         OR: [
           {
-            fromId: userId,
+            fromId: decodedUserId,
             toId: toId
           },
           {
-            toId: userId,
+            toId: decodedUserId,
             fromId: toId
           }
         ]
@@ -570,7 +578,7 @@ auth.get('/connection-status/:id', async (c) => {
       body: {
         connected: connection !== null
       }
-    });
+    }, 200);
 
   } catch (error) {
     removeTokenCookie(c);
@@ -582,7 +590,7 @@ auth.get('/connection-status/:id', async (c) => {
   }
 });
 
-auth.get('/network/unconnected', async (c) => {
+auth.get('/network/unconnected', async (c : Context) => {
   try {
     const token = getCookie(c, 'jwt');
     if (!token) return c.json({ 
@@ -637,7 +645,7 @@ const users = await prisma.user.findMany({
           profilePhotoPath: user.profilePhotoPath
         }))
       }
-    });
+    }, 200);
 
   } catch (error) {
     removeTokenCookie(c);
@@ -649,7 +657,7 @@ const users = await prisma.user.findMany({
   }
 });
 
-auth.get('/network/requested', async (c) => {
+auth.get('/network/requested', async (c : Context) => {
   try {
     const token = getCookie(c, 'jwt');
     if (!token) return c.json({ 
@@ -705,7 +713,7 @@ auth.get('/network/requested', async (c) => {
           profilePhotoPath: user.profilePhotoPath
         }))
       }
-    });
+    }, 200);
 
   } catch (error) {
     removeTokenCookie(c);
@@ -717,7 +725,7 @@ auth.get('/network/requested', async (c) => {
   }
 });
 
-auth.get('/network/incoming-requests', async (c) => { 
+auth.get('/network/incoming-requests', async (c : Context) => { 
   try {
     const token = getCookie(c, 'jwt');
     if (!token) return c.json({ 
@@ -773,7 +781,7 @@ auth.get('/network/incoming-requests', async (c) => {
           profilePhotoPath: user.profilePhotoPath
         }))
       }
-    });
+    }, 200);
 
   } catch (error) {
     removeTokenCookie(c);
@@ -785,7 +793,7 @@ auth.get('/network/incoming-requests', async (c) => {
   }
 });
 
-auth.get('/network/connected', async (c) => {
+auth.get('/network/connected', async (c : Context) => {
   try {
     const token = getCookie(c, 'jwt');
 
@@ -831,7 +839,7 @@ auth.get('/network/connected', async (c) => {
           profilePhotoPath: user.profilePhotoPath
         }))
       }
-    });
+    }, 200);
 
   } catch (error) {
     console.log(error);
@@ -844,7 +852,7 @@ auth.get('/network/connected', async (c) => {
   }
 });
 
-auth.post('/request/:id', async (c) => {
+auth.post('/request/:id', async (c : Context) => {
   try {
     const token = getCookie(c, 'jwt');
     if (!token) return c.json({ 
@@ -862,7 +870,7 @@ auth.post('/request/:id', async (c) => {
         success: false,
         message: 'Cannot connect to yourself',
         body: null
-      });
+      }, 400);
     }
 
     // cek apakah user X ada dan apakah sudah requested/connected
@@ -898,7 +906,7 @@ auth.post('/request/:id', async (c) => {
         success: false,
         message: 'Already requested or connected',
         body: null
-      });
+      }, 400);
     }
 
     // bikin request baru
@@ -914,7 +922,7 @@ auth.post('/request/:id', async (c) => {
       success: true,
       message: "Request Successful",
       body: null
-    });
+    }, 200);
 
   } catch (error) {
     removeTokenCookie(c);
@@ -949,7 +957,7 @@ auth.post('/accept-request/:id', async (c) => {
         success: false, 
         message: 'Request not found', 
         body: null 
-      });
+      }, 400);
     }
 
     // bikin connection dan delete request dalam transaction
@@ -974,7 +982,7 @@ auth.post('/accept-request/:id', async (c) => {
       success: true, 
       message: 'Connection accepted', 
       body: null 
-    });
+    }, 200);
   } catch (error) {
     removeTokenCookie(c);
     return c.json({ 
@@ -986,7 +994,7 @@ auth.post('/accept-request/:id', async (c) => {
 });
 
 // Decline connection request
-auth.post('/decline-request/:id', async (c) => {
+auth.post('/decline-request/:id', async (c : Context) => {
   try {
     const token = getCookie(c, 'jwt');
     if (!token) return c.json({ 
@@ -1008,7 +1016,7 @@ auth.post('/decline-request/:id', async (c) => {
       success: true, 
       message: 'Request declined', 
       body: null 
-    });
+    }, 200);
   } catch (error) {
     removeTokenCookie(c); 
     return c.json({ 
@@ -1019,7 +1027,7 @@ auth.post('/decline-request/:id', async (c) => {
   }
 });
 
-auth.post('/disconnect/:id', async (c) => {
+auth.post('/disconnect/:id', async (c : Context) => {
   try {
     const token = getCookie(c, 'jwt');
     if (!token) {
@@ -1066,7 +1074,7 @@ auth.post('/disconnect/:id', async (c) => {
       success: true,
       message: 'Connection removed successfully',
       body: null
-    });
+    }, 200);
 
   } catch (error) {
     console.error('Remove connection error:', error);
@@ -1078,7 +1086,7 @@ auth.post('/disconnect/:id', async (c) => {
   }
 });
 
-auth.get('/chat/history/:userId', async (c) => {
+auth.get('/chat/history/:userId', async (c : Context) => {
   try {
     const userId = c.req.param('userId');
     const token = getCookie(c, 'jwt');
@@ -1118,7 +1126,7 @@ auth.get('/chat/history/:userId', async (c) => {
           timestamp: msg.timestamp.toISOString() 
         }))
       }
-    });
+    }, 200);
   } catch (error) {
     console.error('Chat history error:', error);
     return c.json({ 
@@ -1128,4 +1136,5 @@ auth.get('/chat/history/:userId', async (c) => {
     }, 500);
   }
 });
+
 export default auth;

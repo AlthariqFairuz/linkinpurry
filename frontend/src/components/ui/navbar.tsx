@@ -313,18 +313,18 @@ export const Navbar = () => {
           )}
 
           {/* Mobile Menu Button */}
-          <div className="sm:hidden flex items-center">
-            <Menu 
-              className="w-6 h-6 text-gray-500 hover:text-gray-900 ml-2" 
-              strokeWidth={1.5}
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            />
+            <div className="sm:hidden flex items-center">
+              <Menu 
+                className="w-6 h-6 text-gray-500 hover:text-gray-900 ml-2" 
+                strokeWidth={1.5}
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              />
+            </div>
           </div>
-        </div>
           {/* Mobile Navigation Menu */}
-        {isMobileMenuOpen && (
-        <div className="sm:hidden border-t border-gray-200">
-          <div className="pt-2 pb-3 space-y-1">
+          {isMobileMenuOpen && (
+          <div className="sm:hidden border-t border-gray-200">
+            <div className="pt-2 pb-3 space-y-1">
 
             {/* Home */ }
             {isAuthenticated && (

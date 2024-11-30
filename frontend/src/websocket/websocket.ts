@@ -1,5 +1,7 @@
 import { io, Socket } from 'socket.io-client';
 
+
+// here we are using singleton pattern to ensure that there is only one instance of the WebSocketService
 class WebSocketService {
   private static instance: WebSocketService;
   private socket: Socket ;
