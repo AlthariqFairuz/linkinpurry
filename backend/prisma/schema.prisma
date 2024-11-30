@@ -55,6 +55,9 @@ model Chat {
   fromId    BigInt   @map("from_id")
   toId      BigInt   @map("to_id")
   message   String   @db.Text
+  read      Boolean  @default(false)
+  readAt    DateTime? @map("read_at") @db.Timestamptz()
+
 
   // Relations
   from      User     @relation("SentChats", fields: [fromId], references: [id], onDelete: Cascade)

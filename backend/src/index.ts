@@ -1,10 +1,12 @@
-import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { config } from 'dotenv';
 import auth from './api/api.js';
 import { swaggerUI } from '@hono/swagger-ui';
 import { swaggerConfig } from './swagger.js';
+import { initializeWebSocket } from './websocket/socket.js';
+import { serve } from '@hono/node-server';
+import { Server as HttpServer } from 'http';
 
 // load env
 config();
@@ -18,11 +20,6 @@ const corsOptions = {
 
 // Configure CORS
 app.use('/*', cors(corsOptions));
-
-// // Basic health check route
-// app.get('/', (c) => {
-//   return c.json({ status: 'ok', message: 'Server is running' });
-// });
 
 // Serve Swagger UI
 app.get('/swagger', swaggerUI({ url: '/docs' }));
@@ -41,10 +38,13 @@ app.onError((err, c) => {
   }, 500);
 });
 
-// Start server
+// More simple approach, credit to: https://github.com/orgs/honojs/discussions/1781
+// Create server, user serve to create a server that can handle incoming HTTP requests
 const port = parseInt(process.env.PORT || '3000');
 
-serve({
-  fetch: app.fetch,
-  port
+const server = serve({
+  fetch: app.fetch, // here app.fetch is the the handler for incoming requests
+  port: port,
 });
+
+initializeWebSocket(server as HttpServer);
