@@ -10,6 +10,7 @@ import Footer from '@/components/ui/footer';
 import DetailProfileHeader from '@/components/ui/detailprofileheader';
 import LoadingComponent from '@/components/ui/loadingcomponent';
 import { ConnectionStatusDetailProfile } from '@/types/DetailProfileHeader';
+import LatestPostSidebar from '@/components/ui/detailprofilesidebar';
 
 export const DetailProfile = () => {
   const { id } = useParams();
@@ -312,8 +313,7 @@ export const DetailProfile = () => {
                   </CardContent>
                 </Card>
 
-                {/* Skills - Only Visible to Connected Users */}
-                {connectionStatus === 'connected' && (
+                {/* Skills - Always visible */}
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-lg font-semibold">Skills</CardTitle>
@@ -321,23 +321,17 @@ export const DetailProfile = () => {
                     <CardContent>
                       <p className="whitespace-pre-wrap text-gray-700">{profileData.skills || 'No skills listed'}</p>
                     </CardContent>
-                  </Card>
-                )}
+                </Card>
               </div>
 
               {/* Right Sidebar */}
               <div className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg font-semibold">Profile Strength</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-gray-600">Intermediate</p>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
-                      <div className="bg-blue-600 h-2.5 rounded-full w-2/3"></div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <LatestPostSidebar
+                  userId={id || ''}
+                  isLoggedIn={isLoggedIn}
+                  profilePhotoPath={profileData.profilePhotoPath}
+                  fullName={profileData.fullName || ''}
+                />
               </div>
             </div>
           </div>

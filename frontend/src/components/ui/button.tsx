@@ -49,14 +49,14 @@ const buttonVariants = cva(
           "transition-[border,transform,shadow]",
           "hover:border-[#004182]",
         ].join(" "),
-        // secondary: [
-        //   "bg-[#f3f2ef] text-[#666666]",
-        //   "hover:bg-[#e1e1e1]",
-        //   "active:bg-[#d1d1d1]",
-        //   "focus-visible:ring-[#0a66c2]",
-        //   // Add subtle background transition
-        //   "transition-[background,transform,shadow]",
-        // ].join(" "),
+        secondary: [
+          "bg-[#f3f2ef] text-[#666666]",
+          "hover:bg-[#e1e1e1]",
+          "active:bg-[#d1d1d1]",
+          "focus-visible:ring-[#0a66c2]",
+          // Add subtle background transition
+          "transition-[background,transform,shadow]",
+        ].join(" "),
         // link: [
         //   "text-[#0a66c2] underline-offset-4 bg-transparent",
         //   "hover:underline",

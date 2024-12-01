@@ -1315,4 +1315,63 @@ auth.delete('/feed/:post_id', async (c) => {
   }
 })
 
+auth.get('/latest-posts/:user_id', async (c : Context) => {
+  try {
+    const token = getCookie(c, "jwt");
+
+    if (!token) return c.json({ 
+      success: false, 
+      message: 'No token found', 
+      body: null 
+    }, 401);
+
+    await verifyToken(token);
+    const user_id = BigInt(c.req.param('user_id'));
+
+    const posts = await prisma.feed.findMany({
+      where: {
+        userId: user_id
+      },
+      orderBy: {
+        createdAt: "desc" 
+      },
+      take: 1,
+      include: {
+        user: {
+          select: {
+            fullName: true,
+            profilePhotoPath: true
+          }
+        }
+      }
+    });
+
+    const serializedPosts = posts.map(post => ({
+      id: post.id.toString(),
+      userId: post.userId.toString(),
+      content: post.content,
+      createdAt: post.createdAt.toISOString(),
+      updatedAt: post.updatedAt.toISOString(),
+      user: {
+        fullName: post.user.fullName,
+        profilePhotoPath: post.user.profilePhotoPath
+      }
+    }));
+
+    return c.json({
+      success: true,
+      message: "Latest Post Fetched",
+      body: serializedPosts
+    }, 200);
+
+  } catch(error) {
+    console.error('Error fetching latest posts:', error);
+    return c.json({ 
+      success: false, 
+      message: 'Failed to fetch latest posts', 
+      body: null 
+    }, 500);
+  }
+})
+
 export default auth;
