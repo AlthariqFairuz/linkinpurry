@@ -9,7 +9,6 @@ import { ProfilePicture } from '@/components/ui/profilephoto';
 import { getUserId } from '@/api/getUserId';
 import { fetchUser } from '@/api/fetchUser';
 import { useEffect, useState } from 'react';
-import { User } from '@/types/User';
 import { useToast } from "@/hooks/use-toast"
 import LoadingComponent from '@/components/ui/loadingcomponent';
 import { Button } from '@/components/ui/button';
@@ -18,7 +17,6 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
@@ -28,9 +26,9 @@ import { Textarea } from '@/components/ui/textarea';
 export default function Home() {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [userData, setUserData] = useState<User | null>(null);
+  const [userData, setUserData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [createPostText, setCreatePostText] = useState<string>('');
+  const [createPostText, setCreatePostText] = useState('');
 
   const handleCreatePost = async () => {
     try {
@@ -40,7 +38,7 @@ export default function Home() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          createPostText
+          content: createPostText 
         }),
         credentials: 'include',
       });
@@ -50,9 +48,10 @@ export default function Home() {
       if (data.success) {
         toast({
           title: "Success",
-          description: "Create post success",
+          description: "Post created successfully",
           variant: "success",
         });
+        setCreatePostText('');
       } else {
         toast({
           title: "Error",
@@ -66,8 +65,6 @@ export default function Home() {
         description: error.message || "Failed to create post",
         variant: "destructive",
       });
-    } finally {
-      setCreatePostText('');
     }
   };
 
@@ -75,10 +72,7 @@ export default function Home() {
     const fetchUserData = async () => {
       try {
         setIsLoading(true);
-        // First get the user ID
         const id = await getUserId();
-      
-        // Then fetch the user details using the ID
         const user = await fetchUser(id);
         if (user) {
           setUserData(user);
@@ -86,106 +80,97 @@ export default function Home() {
       } catch (error) {
         toast({
           title: "Error",
-          description: "Failed to fetch user details: " + error,
+          description: "Failed to fetch user details " + error,
           variant: "destructive",
         });
+        navigate('/login');
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchUserData();
-  }, [toast, navigate]);
- 
-  const posts = [
-    {
-      id: 1,
-    },
-    {
-      id: 2,
-    }
-  ];
+  }, [navigate, toast]);
   
   return (
     <div className="min-h-screen bg-[#f3f2ef] pb-[68px]">
       <Navbar />
 
       {isLoading ? <LoadingComponent /> : (
-        <main className="pt-20 pb-8">
-          <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <div className="lg:col-span-1">
-            <ProfileCard 
-              fullName={userData.fullName} 
-              username={userData.username} 
-              email={userData.email} 
-              profilePhotoPath={userData.profilePhotoPath}
-              connections={userData.connections}
-            />
-          </div>
-
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow mb-4 p-4">
-              <div className="flex gap-4">
-                <ProfilePicture size="sm" src={userData.profilePhotoPath}/>
-                <AlertDialog className="w-full">
-                  <AlertDialogTrigger asChild>
-                    <Button variant="bar" className="w-full sm:w-auto">Start a post</Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent className="max-w-[75%]">
-                    <AlertDialogHeader className="text-black">
-                      <AlertDialogDescription className="hidden"></AlertDialogDescription>
-                      <div className="flex gap-x-4">
-                        <ProfilePicture size="sm" src={userData.profilePhotoPath}/>
-                        <AlertDialogTitle className="inline text-2xl md:text-3xl font-semibold text-gray-900 text-left ">
-                          {userData.fullName} 
-                        </AlertDialogTitle>
-                        <AlertDialogCancel class="absolute right-2 sm:right-4 md:right-4 lg:right-6 bg-white border-none"
-                          onClick={() => setCreatePostText('')}
-                        >
-                          <X/>
-                        </AlertDialogCancel>
-                      </div>
-                    </AlertDialogHeader>
-
-                    <div className="space-y-2">
-                      <Textarea
-                        value={createPostText}
-                        onChange={(e) => setCreatePostText(e.target.value)}
-                        maxlength="280"
-                        placeholder="What do you want to talk about?"
-                        className="h-[25vh] text-black"
-                        style={{fontSize: "18px"}}
-                      />
-                    </div>
-                    
-                    <div className="flex justify-end">
-                      <AlertDialogAction
-                        onClick={() => handleCreatePost()}
-                        className="rounded-full"
-                        disabled={createPostText==''}
-                      >
-                        Post
-                      </AlertDialogAction>
-                    </div>
-
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            </div>
-
-            {posts.map(post => (
-              <Feed key={post.id} />
-            ))}
-          </div>
-
-          <div className="lg:col-span-1">
-            <Sidebar />
-          </div>
-          </div>
-        </main>
+         <main className="pt-20 pb-16">
+         <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-12 gap-4">
+           {/* Left Sidebar */}
+           <div className="md:col-span-3 space-y-4">
+             <ProfileCard 
+               fullName={userData?.fullName} 
+               username={userData?.username} 
+               email={userData?.email} 
+               profilePhotoPath={userData?.profilePhotoPath}
+               connections={userData?.connections}
+             />
+           </div>
+ 
+           {/* Main Feed */}
+           <div className="md:col-span-6 space-y-4">
+             {/* Create Post Card */}
+             <div className="bg-white rounded-lg shadow p-4">
+               <div className="flex gap-3 items-center">
+                 <ProfilePicture size="sm" src={userData?.profilePhotoPath} />
+                 <AlertDialog>
+                   <AlertDialogTrigger asChild>
+                     <Button 
+                       variant="outline" 
+                       className="w-full text-left justify-start text-muted-foreground h-12 text-gray-500"
+                     >
+                       Start a post
+                     </Button>
+                   </AlertDialogTrigger>
+                   <AlertDialogContent className="sm:max-w-[425px]">
+                     <AlertDialogHeader>
+                       <AlertDialogTitle className="flex items-center justify-between text-lg font-semibold text-gray-900">
+                         Create a post
+                         <AlertDialogCancel className="h-6 w-6 p-0 hover:bg-slate-100 rounded-full">
+                           <X className="h-4 w-4" />
+                         </AlertDialogCancel>
+                       </AlertDialogTitle>
+                       <div className="flex items-center gap-2 pt-2">
+                         <ProfilePicture size="sm" src={userData?.profilePhotoPath} />
+                         <span className="font-semibold text-gray-900">{userData?.fullName}</span>
+                       </div>
+                     </AlertDialogHeader>
+ 
+                     <Textarea
+                       value={createPostText}
+                       onChange={(e) => setCreatePostText(e.target.value)}
+                       placeholder="What do you want to talk about? (Max 280 characters)"
+                       className="min-h-[150px] my-4 text-gray-900"
+                     />
+ 
+                     <div className="flex justify-end">
+                       <AlertDialogAction
+                         onClick={handleCreatePost}
+                         disabled={!createPostText.trim()}
+                       >
+                         Post
+                       </AlertDialogAction>
+                     </div>
+                   </AlertDialogContent>
+                 </AlertDialog>
+               </div>
+             </div>
+ 
+             {/* Feed Component */}
+             <Feed currentUser={userData} />
+           </div>
+ 
+           {/* Right Sidebar */}
+           <div className="md:col-span-3">
+             <Sidebar />
+           </div>
+         </div>
+       </main>
       )}
       <Footer />
     </div>
-
   );
 }

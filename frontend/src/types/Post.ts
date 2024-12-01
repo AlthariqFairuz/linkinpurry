@@ -1,11 +1,12 @@
-// interface PostProps {
-//     post: {
-//       author: string;
-//       title: string;
-//       time: string;
-//       content: string;
-//       image?: boolean;
-//     };
-//   }
+export interface Post {
+    id: string;
+    userId: string;
+    createdAt: string;
+    updatedAt: string;
+    content: string;
+    user: {
+        fullName: string;
+        profilePhotoPath: string;
+    }
+}
 
-// export default PostProps;

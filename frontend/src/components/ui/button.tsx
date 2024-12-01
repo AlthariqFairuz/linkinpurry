@@ -42,32 +42,31 @@ const buttonVariants = cva(
           "hover:animate-subtle-pulse",
         ].join(" "),
         outline: [
-          "border border-[#0a66c2] bg-transparent text-[#0a66c2]",
-          "hover:bg-[#0a66c2]/5",
+          "bg-transparent text-[#0a66c2]",
           "active:bg-[#0a66c2]/10",
           "focus-visible:ring-[#0a66c2]",
           // Smooth border transition
           "transition-[border,transform,shadow]",
           "hover:border-[#004182]",
         ].join(" "),
-        secondary: [
-          "bg-[#f3f2ef] text-[#666666]",
-          "hover:bg-[#e1e1e1]",
-          "active:bg-[#d1d1d1]",
-          "focus-visible:ring-[#0a66c2]",
-          // Add subtle background transition
-          "transition-[background,transform,shadow]",
-        ].join(" "),
-        link: [
-          "text-[#0a66c2] underline-offset-4",
-          "hover:underline hover:text-[#004182]",
-          "active:texit-[#00294e]",
-          // Add smooth underline animation
-          "relative after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-full",
-          "after:origin-bottom-right after:scale-x-0",
-          "hover:after:origin-bottom-left hover:after:scale-x-100",
-          "after:transition-transform after:duration-300",
-        ].join(" "),
+        // secondary: [
+        //   "bg-[#f3f2ef] text-[#666666]",
+        //   "hover:bg-[#e1e1e1]",
+        //   "active:bg-[#d1d1d1]",
+        //   "focus-visible:ring-[#0a66c2]",
+        //   // Add subtle background transition
+        //   "transition-[background,transform,shadow]",
+        // ].join(" "),
+        // link: [
+        //   "text-[#0a66c2] underline-offset-4 bg-transparent",
+        //   "hover:underline",
+        //   "active:text-[#00294e]",
+        //   // Add smooth underline animation
+        //   "relative after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-full",
+        //   "after:origin-bottom-right after:scale-x-0",
+        //   "hover:after:origin-bottom-left hover:after:scale-x-100",
+        //   "after:transition-transform after:duration-300",
+        // ].join(" "),
         iconLight: [
           "bg-white text-[#666666] border border-[#e1e1e1]",
           "hover:bg-[#f3f2ef] hover:border-[#0a66c2]/30",
