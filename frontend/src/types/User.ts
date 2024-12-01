@@ -1,3 +1,5 @@
+import { Post } from "./Post";
+
 export interface User {
     id: string | null;
     email: string;
@@ -7,6 +9,7 @@ export interface User {
     workHistory: string | null;
     profilePhotoPath: string;
     connections: number | null;
+    latestPost: Post | null;
 }
 
 export interface ApiResponse {
@@ -21,6 +24,7 @@ export interface ApiResponse {
       workHistory: string | null;
       profilePhotoPath: string;
       connections: number | null;
+      latestPost: Post | null;
     } | null;
 }
 

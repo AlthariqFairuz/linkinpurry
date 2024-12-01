@@ -278,9 +278,8 @@ auth.post('/register', async (c : Context) => {
   }
 });
 
-auth.get('/profile/:id', async (c : Context) => {
+auth.get('/profile/:id', async (c: Context) => {
   try {
-
     const userId = BigInt(c.req.param('id'));
 
     const user = await prisma.user.findUnique({ 
@@ -296,13 +295,14 @@ auth.get('/profile/:id', async (c : Context) => {
     }
 
     const numberOfConnections = await prisma.connection.count({
-      where : {
+      where: {
         fromId: userId
       }
     });
 
     const token = getCookie(c, 'jwt');
 
+    // public access (no token)
     if (!token) {
       return c.json({
         success: true,
@@ -312,13 +312,46 @@ auth.get('/profile/:id', async (c : Context) => {
           skills: user.skills,
           workHistory: user.workHistory,
           profilePhotoPath: user.profilePhotoPath,
-          connections: numberOfConnections
+          connections: numberOfConnections,
+          latestPost: null
         }
       }, 200);
     }
     
+    // authenticated users, fetch the latest post
     const decoded = await verifyToken(token);
     const decodedUserId = BigInt(decoded.userId);
+    
+    // Fetch latest post
+    const latestPost = await prisma.feed.findFirst({
+      where: {
+        userId
+      },
+      orderBy: {
+        createdAt: "desc"
+      },
+      include: {
+        user: {
+          select: {
+            fullName: true,
+            profilePhotoPath: true
+          }
+        }
+      }
+    });
+
+    // Serialize the latest post if it exists
+    const serializedPost = latestPost ? {
+      id: latestPost.id.toString(),
+      userId: latestPost.userId.toString(),
+      content: latestPost.content,
+      createdAt: latestPost.createdAt.toISOString(),
+      updatedAt: latestPost.updatedAt.toISOString(),
+      user: {
+        fullName: latestPost.user.fullName,
+        profilePhotoPath: latestPost.user.profilePhotoPath
+      }
+    } : null;
     
     if (decodedUserId == userId) {
       return c.json({
@@ -332,26 +365,27 @@ auth.get('/profile/:id', async (c : Context) => {
           skills: user.skills,
           workHistory: user.workHistory,
           profilePhotoPath: user.profilePhotoPath,
-          connections: numberOfConnections
+          connections: numberOfConnections,
+          latestPost: serializedPost
         }
       }, 200);
     }
 
-    else {
-      return c.json({
-        success: true,
-        message: 'Public Profile',
-        body: {
-          fullName: user.fullName,
-          skills: user.skills,
-          workHistory: user.workHistory,
-          profilePhotoPath: user.profilePhotoPath,
-          connections: numberOfConnections
-        }
-      }, 200);
-    } 
+    return c.json({
+      success: true,
+      message: 'Public Profile',
+      body: {
+        fullName: user.fullName,
+        skills: user.skills,
+        workHistory: user.workHistory,
+        profilePhotoPath: user.profilePhotoPath,
+        connections: numberOfConnections,
+        latestPost: serializedPost
+      }
+    }, 200);
 
   } catch (error) {
+    console.error('Profile error:', error);
     removeTokenCookie(c);
     return c.json({ 
       success: false, 
@@ -1310,65 +1344,6 @@ auth.delete('/feed/:post_id', async (c) => {
     return c.json({ 
       success: false, 
       message: error, 
-      body: null 
-    }, 500);
-  }
-})
-
-auth.get('/latest-posts/:user_id', async (c : Context) => {
-  try {
-    const token = getCookie(c, "jwt");
-
-    if (!token) return c.json({ 
-      success: false, 
-      message: 'No token found', 
-      body: null 
-    }, 401);
-
-    await verifyToken(token);
-    const user_id = BigInt(c.req.param('user_id'));
-
-    const posts = await prisma.feed.findMany({
-      where: {
-        userId: user_id
-      },
-      orderBy: {
-        createdAt: "desc" 
-      },
-      take: 1,
-      include: {
-        user: {
-          select: {
-            fullName: true,
-            profilePhotoPath: true
-          }
-        }
-      }
-    });
-
-    const serializedPosts = posts.map(post => ({
-      id: post.id.toString(),
-      userId: post.userId.toString(),
-      content: post.content,
-      createdAt: post.createdAt.toISOString(),
-      updatedAt: post.updatedAt.toISOString(),
-      user: {
-        fullName: post.user.fullName,
-        profilePhotoPath: post.user.profilePhotoPath
-      }
-    }));
-
-    return c.json({
-      success: true,
-      message: "Latest Post Fetched",
-      body: serializedPosts
-    }, 200);
-
-  } catch(error) {
-    console.error('Error fetching latest posts:', error);
-    return c.json({ 
-      success: false, 
-      message: 'Failed to fetch latest posts', 
       body: null 
     }, 500);
   }

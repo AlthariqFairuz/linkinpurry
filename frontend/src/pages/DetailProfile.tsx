@@ -331,6 +331,7 @@ export const DetailProfile = () => {
                   isLoggedIn={isLoggedIn}
                   profilePhotoPath={profileData.profilePhotoPath}
                   fullName={profileData.fullName || ''}
+                  latestPost={profileData.latestPost}
                 />
               </div>
             </div>
