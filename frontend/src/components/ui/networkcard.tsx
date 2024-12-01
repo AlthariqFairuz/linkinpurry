@@ -166,7 +166,6 @@ export function NetworkCard({
         <div className="mt-2 space-x-2">
           {!showDisconnect && !requested && !receivedRequest && (
             <Button 
-              variant="outline" 
               onClick={handleConnect}
               className="rounded-full"
             >

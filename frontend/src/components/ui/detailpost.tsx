@@ -44,11 +44,22 @@ export function DetailPost({ post, currentUser, onDelete, onEdit }: { post: Post
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setIsEditing(true)}>
-                  Edit post
+              <DropdownMenuItem 
+                  onClick={() => setIsEditing(true)}
+                  className="text-sm"
+                >
+                  <Button variant="edit" className="w-full justify-start">
+                    Edit post
+                  </Button>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onDelete(post.id)}>
-                  Delete post
+
+                <DropdownMenuItem 
+                  onClick={() => onDelete(post.id)}
+                  className="text-sm"
+                >
+                  <Button variant="edit" className="w-full justify-start text-red-600 hover:text-red-700">
+                    Delete post
+                  </Button>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -95,23 +106,43 @@ export function DetailPost({ post, currentUser, onDelete, onEdit }: { post: Post
         <Separator className="my-4" />
   
         <div className="flex justify-between items-center">
-          <Button variant="iconLight" size="sm" className="text-xs">
-            <ThumbsUp className="h-4 w-4 mr-2" />
-            Like
-          </Button>
-          <Button variant="iconLight" size="sm" className="text-xs">
-            <MessageSquare className="h-4 w-4 mr-2" />
-            Comment
-          </Button>
-          <Button variant="iconLight" size="sm" className="text-xs">
-            <Share2 className="h-4 w-4 mr-2" />
-            Share
-          </Button>
-          <Button variant="iconLight" size="sm" className="text-xs">
-            <Send className="h-4 w-4 mr-2" />
-            Send
-          </Button>
-        </div>
+        <Button 
+          variant="postAction" 
+          size="sm" 
+          className="text-xs hover:bg-black/5"
+        >
+          <ThumbsUp className="h-5 w-5 group-hover:scale-110 transition-transform" />
+          <span className="font-medium">Like</span>
+        </Button>
+        
+        <Button 
+          variant="postAction" 
+          size="sm" 
+          className="text-xs hover:bg-black/5"
+        >
+          <MessageSquare className="h-5 w-5 group-hover:scale-110 transition-transform" />
+          <span className="font-medium">Comment</span>
+        </Button>
+        
+        <Button 
+          variant="postAction" 
+          size="sm" 
+          className="text-xs hover:bg-black/5"
+        >
+          <Share2 className="h-5 w-5 group-hover:scale-110 transition-transform" />
+          <span className="font-medium">Share</span>
+        </Button>
+        
+        <Button 
+          variant="postAction" 
+          size="sm" 
+          className="text-xs hover:bg-black/5"
+        >
+          <Send className="h-5 w-5 group-hover:scale-110 transition-transform" />
+          <span className="font-medium">Send</span>
+        </Button>
+      </div>
+
       </Card>
     );
   };

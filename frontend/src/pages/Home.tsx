@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Footer from '@/components/ui/footer';
 import { ProfileCard } from '@/components/ui/profilecard';
 import { Feed } from '@/components/ui/feed';
-import { Sidebar } from '@/components/ui/sidebar';
+import { RightSidebar } from '@/components/ui/rightsidebar';
 import { Navbar } from '@/components/ui/navbar';
 import { ProfilePicture } from '@/components/ui/profilephoto';
 import { getUserId } from '@/api/getUserId';
@@ -165,7 +165,7 @@ export default function Home() {
  
            {/* Right Sidebar */}
            <div className="md:col-span-3">
-             <Sidebar />
+             <RightSidebar />
            </div>
          </div>
        </main>

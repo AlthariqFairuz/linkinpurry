@@ -222,14 +222,14 @@ export const Navbar = () => {
                               size="sm"
                             />
                             <div className="flex flex-col">
-                              <span className="font-medium text-gray-900">
-                                {result.fullName}
-                              </span>
-                              {result.username && (
-                                <span className="text-sm text-gray-500">
-                                  @{result.username}
+                              { result.fullName && (
+                                <span className="font-medium text-gray-900 text-left">
+                                  {result.fullName}
                                 </span>
                               )}
+                                <span className="text-sm text-gray-500 text-left">
+                                  @{result.username}
+                                </span>
                             </div>
                           </div>
                         ))}
