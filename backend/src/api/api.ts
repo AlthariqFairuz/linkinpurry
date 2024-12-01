@@ -1088,7 +1088,7 @@ auth.post('/disconnect/:id', async (c : Context) => {
 
 auth.get('/chat/history/:userId', async (c : Context) => {
   try {
-    const userId = c.req.param('userId');
+    const userId = BigInt(c.req.param('userId'));
     const token = getCookie(c, 'jwt');
     
     if (!token) {
@@ -1100,13 +1100,13 @@ auth.get('/chat/history/:userId', async (c : Context) => {
     }
 
     const decoded = await verifyToken(token);
-    const currentUserId = decoded.userId;
+    const currentUserId = BigInt(decoded.userId);
 
     const messages = await prisma.chat.findMany({
       where: {
         OR: [
-          { fromId: BigInt(currentUserId), toId: BigInt(userId) },
-          { fromId: BigInt(userId), toId: BigInt(currentUserId) }
+          { fromId: currentUserId, toId: userId },
+          { fromId: userId, toId: currentUserId }
         ]
       },
       orderBy: {

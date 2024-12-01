@@ -745,7 +745,7 @@ export const swaggerConfig: OpenAPI.Document = {
         ],
         parameters: [
           {
-            name: 'id',
+            name: 'userId',
             in: 'path',
             required: true,
             schema: {
