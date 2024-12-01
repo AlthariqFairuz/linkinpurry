@@ -1137,4 +1137,177 @@ auth.get('/chat/history/:userId', async (c : Context) => {
   }
 });
 
+auth.get('/feed', async (c) => {
+  try{
+    const token = getCookie(c, "jwt");
+    if (!token) return c.json({ 
+      success: false, 
+      message: 'No token found', 
+      body: null 
+    }, 401);
+    const decoded = await verifyToken(token);
+    if (decoded.exp * 1000 < Date.now()) {
+      removeTokenCookie(c);
+      return c.json({ 
+        success: false, 
+        message: 'Token expired', 
+        body: null 
+      }, 401);
+    }
+    const {limit = 10, cursor = undefined} = c.req.query();
+    
+    const rawdata = await prisma.feed.findMany({
+      take: Number(limit),
+      skip: cursor ? 1 : 0,
+      cursor: cursor ? {id: Number(cursor)} : undefined,
+      orderBy: {id: "desc"},
+    });
+
+    const serializedData = rawdata.map(item => ({
+      ...item,
+      id: item.id.toString(),
+      userId: item.userId.toString(), 
+    }));
+    
+    return c.json({
+      success: true,
+      message: "feed data succesfully fetched",
+      data: serializedData,
+    });
+  } catch(error){
+    return c.json({ 
+      success: false, 
+      message: error, 
+      body: null 
+    }, 500);
+  }
+})
+
+auth.post('/feed', async (c) => {
+  try{
+    const token = getCookie(c, "jwt");
+    if (!token) return c.json({ 
+      success: false, 
+      message: 'No token found', 
+      body: null 
+    }, 401);
+    const decoded = await verifyToken(token);
+    if (decoded.exp * 1000 < Date.now()) {
+      removeTokenCookie(c);
+      return c.json({ 
+        success: false, 
+        message: 'Token expired', 
+        body: null 
+      }, 401);
+    }
+
+    const { content } = await c.req.json(); 
+
+    const insertFeed = await prisma.feed.create({
+      data: {
+        content: content,
+        userId: BigInt(decoded.userId)
+      }
+    })
+
+    return c.json({
+      success: true,
+      message: "Feed Post Successful",
+      body: null
+    });
+
+  } catch(error){
+    return c.json({ 
+      success: false, 
+      message: error, 
+      body: null 
+    }, 500);
+  }
+})
+
+auth.put('/feed/:post_id', async (c) => {
+  try{
+    const token = getCookie(c, "jwt");
+    if (!token) return c.json({ 
+      success: false, 
+      message: 'No token found', 
+      body: null 
+    }, 401);
+    const decoded = await verifyToken(token);
+    if (decoded.exp * 1000 < Date.now()) {
+      removeTokenCookie(c);
+      return c.json({ 
+        success: false, 
+        message: 'Token expired', 
+        body: null 
+      }, 401);
+    }
+
+    const { content } = await c.req.json(); 
+    const post_id = parseInt(c.req.param('post_id'))
+
+    const updateFeed = await prisma.feed.update({
+      where:{
+        id: post_id
+      },
+      data: {
+        content: content,
+      }
+    })
+
+    return c.json({
+      success: true,
+      message: "Feed Update Successful",
+      body: null
+    });
+
+  } catch(error){
+    return c.json({ 
+      success: false, 
+      message: error, 
+      body: null 
+    }, 500);
+  }
+})
+
+auth.delete('/feed/:post_id', async (c) => {
+  try{
+    const token = getCookie(c, "jwt");
+    if (!token) return c.json({ 
+      success: false, 
+      message: 'No token found', 
+      body: null 
+    }, 401);
+    const decoded = await verifyToken(token);
+    if (decoded.exp * 1000 < Date.now()) {
+      removeTokenCookie(c);
+      return c.json({ 
+        success: false, 
+        message: 'Token expired', 
+        body: null 
+      }, 401);
+    }
+
+    const post_id = parseInt(c.req.param('post_id'))
+    const deleteFeed = await prisma.feed.delete({
+      where:{
+        id: post_id
+      }
+    })
+
+    return c.json({
+      success: true,
+      message: "Feed Delete Successful",
+      body: null
+    });
+
+  } catch(error){
+    return c.json({ 
+      success: false, 
+      message: error, 
+      body: null 
+    }, 500);
+  }
+})
+
 export default auth;
