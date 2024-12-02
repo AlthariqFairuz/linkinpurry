@@ -14,9 +14,9 @@ export const ProfileCard = ({ username, email, fullName, profilePhotoPath, conne
             <ProfilePicture size="lg" src={profilePhotoPath} />
           </div>
           <div className="mb-4">
-            <h2 className="text-gray-900 text-xl font-bold">{fullName}</h2>
-            <p className="text-gray-600">{email}</p>
-            <p className="text-sm text-gray-500 mt-1">{username}</p>
+            <h2 className="text-gray-900 text-xl font-bold break-words">{fullName}</h2>
+            <p className="text-gray-600 break-words">{email}</p>
+            <p className="text-sm text-gray-500 mt-1 break-words">{username}</p>
           </div>
           <div className="border-t border-b py-2 mb-4">
             <div className="text-sm">

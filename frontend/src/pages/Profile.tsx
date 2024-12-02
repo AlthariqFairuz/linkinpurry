@@ -209,7 +209,7 @@ export default function Profile() {
                       </>
                     ) : (
                       <>
-                        <span className="flex-1 text-left">
+                        <span className="flex-1 text-left break-words overflow-y-auto">
                           {typeof userData?.[field as keyof User] === 'object' 
                             ? JSON.stringify(userData?.[field as keyof User])
                             : userData?.[field as keyof User]?.toString() || ''
@@ -243,7 +243,7 @@ export default function Profile() {
                     onChange={(e) => setUserData(prev => 
                       prev ? { ...prev, skills: e.target.value } : null
                     )}
-                    placeholder="Enter your skills (separate with commas)"
+                    placeholder="Enter your skills"
                     className="min-h-[100px]"
                   />
                   <Button 
@@ -256,7 +256,7 @@ export default function Profile() {
                 </div>
               ) : (
                 <div className="flex items-center justify-between">
-                  <p className="whitespace-pre-wrap text-left">{userData?.skills}</p>
+                  <p className="whitespace-pre-wrap text-left break-words overflow-y-auto pr-2">{userData?.skills}</p>
                   <Button
                     variant="default"
                     size="sm"
@@ -294,7 +294,7 @@ export default function Profile() {
                 </div>
               ) : (
                 <div className="flex items-center justify-between">
-                  <p className="whitespace-pre-wrap text-left">{userData?.workHistory}</p>
+                  <p className="whitespace-pre-wrap text-left break-words overflow-y-auto pr-2">{userData?.workHistory}</p>
                   <Button
                     variant="default"
                     size="sm"

@@ -11,7 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown, Users, UserPlus, UserCheck, Clock } from "lucide-react";
+import { ChevronDown, Users, UserPlus, UserCheck, Clock, User } from "lucide-react";
 import { NetworkResponse, NetworkApiResponse } from '@/types/Network';
 import LoadingComponent from '@/components/ui/loadingcomponent';
 
@@ -80,7 +80,7 @@ export default function Network() {
     },
     unconnected: {
       title: 'People you may know',
-      icon: Users,
+      icon: User,
       emptyMessage: 'No suggestions available'
     },
     requested: {
@@ -111,7 +111,6 @@ export default function Network() {
 
   if (error) {
    navigate('/notfound');
-   console.error(error);
   }
 
   return (
@@ -166,7 +165,7 @@ export default function Network() {
                   className="flex items-center justify-between"
                 >
                   <span className="flex items-center gap-2">
-                    <Users className="h-4 w-4 " />
+                    <User className="h-4 w-4 " />
                     Suggestions
                   </span>
                   {networkData.unconnected.length > 0 && (

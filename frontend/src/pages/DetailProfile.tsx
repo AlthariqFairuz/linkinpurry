@@ -309,7 +309,7 @@ export const DetailProfile = () => {
                     <CardTitle className="text-lg font-semibold">Work History</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="whitespace-pre-wrap text-gray-700">{profileData.workHistory || 'No work history available'}</p>
+                    <p className="whitespace-pre-wrap text-gray-700 break-words">{profileData.workHistory || 'No work history available'}</p>
                   </CardContent>
                 </Card>
 
@@ -319,7 +319,7 @@ export const DetailProfile = () => {
                       <CardTitle className="text-lg font-semibold">Skills</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <p className="whitespace-pre-wrap text-gray-700">{profileData.skills || 'No skills listed'}</p>
+                      <p className="whitespace-pre-wrap text-gray-700 break-words">{profileData.skills || 'No skills listed'}</p>
                     </CardContent>
                 </Card>
               </div>

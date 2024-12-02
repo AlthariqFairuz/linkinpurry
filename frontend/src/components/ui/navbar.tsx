@@ -205,7 +205,7 @@ export const Navbar = () => {
                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-900 mx-auto"></div>
                       </div>
                     ) : searchResults.length > 0 ? (
-                      <div className="max-h-80 overflow-y-auto">
+                      <div className="max-h-80">
                         {searchResults.map((result, index) => (
                           <div
                             key={result.id}
@@ -223,11 +223,11 @@ export const Navbar = () => {
                             />
                             <div className="flex flex-col">
                               { result.fullName && (
-                                <span className="font-medium text-gray-900 text-left">
+                                <span className="font-medium text-gray-900 text-left truncate max-w-[200px] ">
                                   {result.fullName}
                                 </span>
                               )}
-                                <span className="text-sm text-gray-500 text-left">
+                                <span className="text-sm text-gray-500 text-left truncate max-w-[200px]">
                                   @{result.username}
                                 </span>
                             </div>

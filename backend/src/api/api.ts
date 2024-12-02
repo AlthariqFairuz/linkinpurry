@@ -228,7 +228,7 @@ auth.post('/register', async (c : Context) => {
      await prisma.user.create({
        data: {
          username: validatedData.username,
-         fullName: validatedData.fullName || null,
+         fullName: validatedData.fullName || 'LinkInPurry Member',
          email: validatedData.email,
          passwordHash: hashedPassword,
          profilePhotoPath: '/images/default.webp'

@@ -30,7 +30,7 @@ export function DetailPost({ post, currentUser, onDelete, onEdit }: { post: Post
               <AvatarFallback>{post.user.fullName?.[0] || 'User'}</AvatarFallback>
             </Avatar>
             <div>
-              <h3 className="font-semibold text-md text-gray-900 text-left">{post.user.fullName || 'LinkInPurry Member'}</h3>
+              <h3 className="font-semibold text-md text-gray-900 text-left truncate max-w-[200px]">{post.user.fullName || 'LinkInPurry Member'}</h3>
               <p className="text-xs text-muted-foreground text-gray-500 text-left">
                 {format(new Date(post.createdAt), 'MMM d, yyyy')}
               </p>
