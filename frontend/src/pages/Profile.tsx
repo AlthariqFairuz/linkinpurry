@@ -187,7 +187,7 @@ export default function Profile() {
                     {isEditing[field as keyof typeof isEditing] ? (
                       <>
                         <Input
-                          value={userData?.[field as keyof User] || ''}
+                          value={userData?.[field as keyof User]?.toString() || ''}  
                           onChange={(e) => setUserData(prev => 
                             prev ? { ...prev, [field]: e.target.value } : null
                           )}
@@ -206,7 +206,12 @@ export default function Profile() {
                       </>
                     ) : (
                       <>
-                        <span className="flex-1">{userData?.[field as keyof User]}</span>
+                        <span className="flex-1">
+                          {typeof userData?.[field as keyof User] === 'object' 
+                            ? JSON.stringify(userData?.[field as keyof User])
+                            : userData?.[field as keyof User]?.toString() || ''
+                          }
+                        </span>
                         <Button
                           variant="default"
                           size="sm"

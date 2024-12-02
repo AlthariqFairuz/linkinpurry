@@ -1184,6 +1184,7 @@ auth.get('/feed', async (c) => {
     const decoded = await verifyToken(token);
     const currentUserId = BigInt(decoded.userId);
 
+    // get connected users
     const connections = await prisma.connection.findMany({
       where: {
         fromId: currentUserId
@@ -1195,18 +1196,26 @@ auth.get('/feed', async (c) => {
 
     const connectedUserIds = connections.map(conn => conn.toId);
 
-    const {limit = 10, cursor} = c.req.query();
-    
-    const rawdata = await prisma.feed.findMany({
+    // get pagination params
+    const limit = Number(c.req.query('limit')) || 10;
+    const cursor = c.req.query('cursor');
+
+
+    const posts = await prisma.feed.findMany({
       where: {
         userId: {
           in: [...connectedUserIds, currentUserId]
-        }
+        },
+        ...(cursor ? {
+          id: {
+            lt: BigInt(cursor) // get posts with ID less than cursor
+          }
+        } : {})
       },
-      take: Number(limit),
-      skip: cursor ? 1 : 0,
-      cursor: cursor ? {id: BigInt(cursor)} : undefined,
-      orderBy: {id: "desc"},
+      take: limit,
+      orderBy: {
+        id: "desc" //  newest first
+      },
       include: {
         user: {
           select: {
@@ -1217,26 +1226,30 @@ auth.get('/feed', async (c) => {
       }
     });
 
-    const serializedData = rawdata.map(item => ({
-      ...item,
-      id: item.id.toString(),
-      userId: item.userId.toString(),
+    // serialize
+    const serializedPosts = posts.map(post => ({
+      id: post.id.toString(),
+      userId: post.userId.toString(),
+      content: post.content,
+      createdAt: post.createdAt.toISOString(),
+      updatedAt: post.updatedAt.toISOString(),
       user: {
-        fullName: item.user.fullName,
-        profilePhotoPath: item.user.profilePhotoPath
+        fullName: post.user.fullName,
+        profilePhotoPath: post.user.profilePhotoPath
       }
     }));
     
     return c.json({
       success: true,
       message: "Feed data successfully fetched",
-      body: serializedData 
+      body: serializedPosts
     }, 200);
 
   } catch(error) {
+    console.error('Feed error:', error);
     return c.json({ 
       success: false, 
-      message: 'Failed to fetch feed: ' + error, 
+      message: 'Failed to fetch feed', 
       body: null 
     }, 500);
   }

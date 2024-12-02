@@ -9,6 +9,7 @@ import { Separator } from "./separator";
 import { format } from 'date-fns';
 import { Post } from "@/types/Post";
 import { UserData } from "@/types/UserData";
+
 // Individual Post Component
 export function DetailPost({ post, currentUser, onDelete, onEdit }: { post: Post, currentUser: UserData, onDelete: (postId: string) => void, onEdit: (postId: string, newContent: string) => void }) {
     const [isEditing, setIsEditing] = useState(false);
@@ -25,12 +26,12 @@ export function DetailPost({ post, currentUser, onDelete, onEdit }: { post: Post
         <div className="flex items-start justify-between">
           <div className="flex items-start space-x-3">
             <Avatar className="h-12 w-12">
-              <AvatarImage src={post.user.profilePhotoPath} />
+              <AvatarImage src={post.user.profilePhotoPath} className="rounded-full"/>
               <AvatarFallback>{post.user.fullName?.[0] || 'User'}</AvatarFallback>
             </Avatar>
             <div>
               <h3 className="font-semibold text-sm text-gray-900">{post.user.fullName || 'LinkInPurry Member'}</h3>
-              <p className="text-xs text-muted-foreground text-gray-500">
+              <p className="text-xs text-muted-foreground text-gray-500 text-left">
                 {format(new Date(post.createdAt), 'MMM d, yyyy')}
               </p>
             </div>
