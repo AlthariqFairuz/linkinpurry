@@ -84,19 +84,15 @@ export function initializeWebSocket(httpServer: HttpServer) {
             toId: BigInt(data.toId),
             message: trimmedMessage,
             timestamp: new Date(),
-            read: false
           }
         });
 
-    
         const messagePayload = {
           id: chatMessage.id.toString(),
           fromId,
           toId: data.toId,
           message: trimmedMessage,
           timestamp: chatMessage.timestamp,
-          read: false,
-          readAt: null
         };
 
         // Get recipient's socket info
@@ -116,60 +112,6 @@ export function initializeWebSocket(httpServer: HttpServer) {
           error: error instanceof Error ? error.message : 'Unknown error',
           data: data
         });
-      }
-    });
-
-    // New handler for marking messages as read
-    socket.on('mark_messages_read', async (data: { conversationId: string, messageIds: string[] }) => {
-      try {
-        let userId: string | undefined;
-        for (const [id, status] of activeUsers.entries()) {
-          if (status.socketId === socket.id) {
-            userId = id;
-            break;
-          }
-        }
-
-        if (!userId || !data.messageIds.length) {
-          throw new Error('Invalid read receipt data');
-        }
-
-        const now = new Date();
-
-        // Update messages in database
-        await prisma.chat.updateMany({
-          where: {
-            id: {
-              in: data.messageIds.map(id => BigInt(id))
-            },
-            toId: BigInt(userId),
-            read: false
-          },
-          data: {
-            read: true,
-            readAt: now
-          }
-        });
-
-        // Notify sender that messages were read
-        const firstMessage = await prisma.chat.findFirst({
-          where: {
-            id: BigInt(data.messageIds[0])
-          }
-        });
-
-        if (firstMessage) {
-          const senderStatus = activeUsers.get(firstMessage.fromId.toString());
-          if (senderStatus?.socketId) {
-            io.to(senderStatus.socketId).emit('messages_read', {
-              conversationId: data.conversationId,
-              messageIds: data.messageIds,
-              readAt: now
-            });
-          }
-        }
-      } catch (error) {
-        console.error('Error marking messages as read:', error);
       }
     });
 
@@ -208,8 +150,6 @@ export function initializeWebSocket(httpServer: HttpServer) {
             toId: msg.toId.toString(),
             message: msg.message,
             timestamp: msg.timestamp,
-            read: msg.read,
-            readAt: msg.readAt
           }))
         });
       } catch (error) {
@@ -291,20 +231,6 @@ export function initializeWebSocket(httpServer: HttpServer) {
         }
       } catch (error) {
         console.error('Error handling typing end:', error);
-      }
-    });
-
-    // Handle user status updates
-    socket.on('get_user_status', (userId: string) => {
-      try {
-        const userStatus = activeUsers.get(userId);
-        socket.emit('user_status', {
-          userId,
-          online: !!userStatus,
-          lastActive: userStatus?.lastActive || null
-        });
-      } catch (error) {
-        console.error('Error getting user status:', error);
       }
     });
 

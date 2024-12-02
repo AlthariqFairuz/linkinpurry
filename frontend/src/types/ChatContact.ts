@@ -4,6 +4,4 @@ export interface ChatContact {
     avatar: string;
     lastMessage: string;
     unread: number;
-    lastActive?: Date;
-    online?: boolean;
   }

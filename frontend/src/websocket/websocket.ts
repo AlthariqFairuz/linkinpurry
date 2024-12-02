@@ -25,7 +25,7 @@ class WebSocketService {
       const data = await response.json();
       
       if (data.success) {
-        this.userId = data.body.id;  // Store the user ID
+        this.userId = data.body.id; 
         this.socket = io(this.SERVER_URL, {
           transports: ['websocket'],
           withCredentials: true
@@ -41,30 +41,6 @@ class WebSocketService {
       return null;
     }
   }
-
-//   private setupBaseHandlers() {
-//     if (!this.socket) return;
-
-//     this.socket.on('connect', () => {
-//       console.log('Connected to WebSocket server');
-//     });
-
-//     this.socket.on('connect_error', (error) => {
-//       console.error('Connection error:', error);
-//       toast({
-//         title: "Connection Error",
-//         description: "Failed to connect to chat service"
-//       });
-//     });
-
-//     this.socket.on('disconnect', (reason) => {
-//       console.log('Disconnected:', reason);
-//       if (reason === 'io server disconnect') {
-//         // Server disconnected us, try to reconnect
-//         this.socket?.connect();
-//       }
-//     });
-//   }
 
   public getSocket(): Socket | null {
     return this.socket;
@@ -88,10 +64,6 @@ class WebSocketService {
 
   public emitTypingEnd(toId: string) {
     this.socket?.emit('typing_end', { toId });
-  }
-
-  public emitMarkMessagesRead(data: { conversationId: string; messageIds: string[] }) {
-    this.socket?.emit('mark_messages_read', data);
   }
 
   public getUserId(): string | null {

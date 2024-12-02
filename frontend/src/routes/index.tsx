@@ -91,6 +91,12 @@ export default function AppRoutes() {
           </PrivateRoute>
         } />
 
+        <Route path="/chat/:userId" element={
+          <PrivateRoute>
+            <ChatInterface />
+          </PrivateRoute>
+        } />
+
         {/* Not Found Route */}
         <Route path="*" element={<NotFound />} />
       </Routes>

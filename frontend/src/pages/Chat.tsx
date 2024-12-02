@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
-import { ArrowLeft, Check, CheckCheck, Search, Send } from "lucide-react"
+import { ArrowLeft,Search, Send } from "lucide-react"
 import { ChatContact } from "@/types/ChatContact"
 import { ChatMessage } from "@/types/ChatMessage"
 import { Navbar } from "@/components/ui/navbar"
@@ -29,20 +29,20 @@ export default function Chat() {
   const wsService = useRef<WebSocketService>(WebSocketService.getInstance())
   const [socket, setSocket] = useState<Socket | null>(null)
 
+
   // Setup socket listeners as a callback to prevent recreation
   const setupSocketListeners = useCallback((socket: Socket) => {
+    
     socket.on('receive_message', (data: MessageData) => {
       const currentUserId = wsService.current.getUserId();
       const newMessage: ChatMessage = {
         id: data.id,
         fromId: data.fromId,
         toId: data.toId,
-        sender: data.fromId === currentUserId ? 'Me' : selectedContact?.name || 'Unknown',
+        sender: data.fromId === currentUserId ? 'Me' : selectedContact?.name || 'LinkedInPurry Member',
         content: data.message,
         timestamp: new Date(data.timestamp).toLocaleTimeString(),
         isMe: data.fromId === currentUserId,  // Check against actual user ID
-        read: false,
-        readAt: null
       }
       
       setMessages(prev => [...prev, newMessage])
@@ -63,7 +63,6 @@ export default function Chat() {
           )
         );
       }
-  
       setContacts(prev => prev.map(contact => {
         if (contact.id.toString() === data.fromId) {
           return {
@@ -76,16 +75,6 @@ export default function Chat() {
       }))
     })
 
-    socket.on('messages_read', (data: { messageIds: string[], readAt: string }) => {
-      setMessages(prevMessages => 
-        prevMessages.map(msg => 
-          data.messageIds.includes(msg.id) 
-            ? { ...msg, read: true, readAt: new Date(data.readAt) }
-            : msg
-        )
-      )
-    })
-
     socket.on('user_typing', ({ userId }: { userId: string }) => {
       if (selectedContact?.id.toString() === userId) {
         setIsTyping(true)
@@ -96,22 +85,6 @@ export default function Chat() {
       if (selectedContact?.id.toString() === userId) {
         setIsTyping(false)
       }
-    })
-
-    socket.on('user_online', (userId: string) => {
-      setContacts(prev => prev.map(contact => 
-        contact.id.toString() === userId 
-          ? { ...contact, online: true }
-          : contact
-      ))
-    })
-
-    socket.on('user_offline', (userId: string) => {
-      setContacts(prev => prev.map(contact => 
-        contact.id.toString() === userId 
-          ? { ...contact, online: false, lastActive: new Date() }
-          : contact
-      ))
     })
   }, [selectedContact])
 
@@ -173,30 +146,6 @@ export default function Chat() {
     }
   }
 
-  // Mark messages as read
-  const markMessagesAsRead = (conversationId: string) => {
-    if (!socket) return
-
-    const unreadMessages = messages
-      .filter(msg => !msg.read && !msg.isMe)
-      .map(msg => msg.id)
-
-    if (unreadMessages.length > 0) {
-      wsService.current.emitMarkMessagesRead({
-        conversationId,
-        messageIds: unreadMessages
-      })
-
-      setMessages(prevMessages => 
-        prevMessages.map(msg => 
-          unreadMessages.includes(msg.id) 
-            ? { ...msg, read: true, readAt: new Date() }
-            : msg
-        )
-      )
-    }
-  }
-
   // Handle sending messages
   const handleSendMessage = () => {
     if (!message.trim() || !socket || !selectedContact) return
@@ -215,8 +164,6 @@ export default function Chat() {
       content: message.trim(),
       timestamp: new Date().toLocaleTimeString(),
       isMe: true,
-      read: false,
-      readAt: null
     }
     
     setMessages(prev => [...prev, newMessage])
@@ -260,8 +207,6 @@ export default function Chat() {
           content: msg.message,
           timestamp: new Date(msg.timestamp).toLocaleTimeString(),
           isMe: msg.fromId === currentUserId,  // Check against actual user ID
-          read: msg.read,
-          readAt: msg.readAt ? new Date(msg.readAt) : null
         }))
         setMessages(formattedMessages)
   
@@ -269,9 +214,6 @@ export default function Chat() {
         setContacts(prev => prev.map(c => 
           c.id === contact.id ? { ...c, unread: 0 } : c
         ))
-  
-        // Mark messages as read
-        markMessagesAsRead(contact.id.toString())
       }
     } catch (error) {
       toast({
@@ -283,27 +225,16 @@ export default function Chat() {
   }
 
   const MessageBubble = ({ message }: { message: ChatMessage }) => (
-    <div className={`flex flex-col ${message.isMe ? "items-end" : "items-start"}`}>
+    <div className={`flex ${message.isMe ? 'justify-end' : 'justify-start'}`}>
       <div className={`
-        max-w-[70%] rounded-lg p-3
-        ${message.isMe ? "bg-[#0a66c2] text-white" : "bg-[#f3f2ef] text-[#666666]"}
+        max-w-[70%] rounded-lg px-4 py-2
+        ${message.isMe ? 'bg-[#0a66c2] text-white' : 'bg-[#f3f2ef] text-[#666666]'}
       `}>
         <p>{message.content}</p>
-        <div className="flex items-center justify-end gap-1 mt-1">
-          <span className="text-xs opacity-70">{message.timestamp}</span>
-          {message.isMe && (
-            <span className="ml-1">
-              {message.read ? (
-                <CheckCheck className="h-4 w-4 text-white" />
-              ) : (
-                <Check className="h-4 w-4 text-white" />
-              )}
-            </span>
-          )}
-        </div>
+        <p className="text-xs opacity-70">{message.timestamp}</p>
       </div>
     </div>
-  )
+  );
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
@@ -358,9 +289,6 @@ export default function Chat() {
                       <AvatarImage src={contact.avatar} />
                       <AvatarFallback>{contact.name[0]}</AvatarFallback>
                     </Avatar>
-                    {contact.online && (
-                      <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 border-2 border-white" />
-                    )}
                   </div>
                   <div className="flex-1 text-left">
                     <p className="font-medium line-clamp-1">{contact.name}</p>
@@ -401,21 +329,9 @@ export default function Chat() {
                     <AvatarImage src={selectedContact.avatar} />
                     <AvatarFallback>{selectedContact.name[0]}</AvatarFallback>
                   </Avatar>
-                  {selectedContact.online && (
-                    <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-green-500 border-2 border-white" />
-                  )}
                 </div>
                 <div>
                   <h2 className="text-xl font-semibold line-clamp-1">{selectedContact.name}</h2>
-                  {selectedContact.online ? (
-                    <p className="text-sm text-green-600">Online</p>
-                  ) : (
-                    selectedContact.lastActive && (
-                      <p className="text-sm text-muted-foreground">
-                        Last active {new Date(selectedContact.lastActive).toLocaleString()}
-                      </p>
-                    )
-                  )}
                 </div>
               </div>
 

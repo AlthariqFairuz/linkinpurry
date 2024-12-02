@@ -6,6 +6,4 @@ export interface ChatMessage {
     content: string;
     timestamp: string;
     isMe: boolean;
-    read: boolean;
-    readAt: Date | null;
   }
