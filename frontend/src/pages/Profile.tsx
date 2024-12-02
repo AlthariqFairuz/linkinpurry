@@ -97,14 +97,11 @@ export default function Profile() {
       const data = await response.json();
       
       if (response.ok) {
-        setUserData(prev => prev ? { 
-          ...prev, 
-          ...data.body // Update all returned fields
-        } : null);
+        const updatedUser = await fetchUser(userData.id);
+        setUserData(updatedUser);
         
         setIsEditing(prev => ({ ...prev, [field]: false }));
         setSelectedFile(null);
-        setIsLoading(false);
         
         toast({
           title: "Success",
@@ -112,15 +109,21 @@ export default function Profile() {
           variant: "success",
         });
       } else {
-        throw new Error(data.message);
+        toast({
+          title: "Error",
+          description: data.body[0].message || "Failed to update profile",
+          variant: "destructive",
+        });
       }
     } catch (error) {
-      console.error('Update error:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to update profile",
         variant: "destructive",
       });
+    }
+    finally {
+      setIsLoading(false);
     }
   };
 
@@ -206,7 +209,7 @@ export default function Profile() {
                       </>
                     ) : (
                       <>
-                        <span className="flex-1">
+                        <span className="flex-1 text-left">
                           {typeof userData?.[field as keyof User] === 'object' 
                             ? JSON.stringify(userData?.[field as keyof User])
                             : userData?.[field as keyof User]?.toString() || ''
@@ -253,7 +256,7 @@ export default function Profile() {
                 </div>
               ) : (
                 <div className="flex items-center justify-between">
-                  <p className="whitespace-pre-wrap">{userData?.skills}</p>
+                  <p className="whitespace-pre-wrap text-left">{userData?.skills}</p>
                   <Button
                     variant="default"
                     size="sm"
@@ -291,7 +294,7 @@ export default function Profile() {
                 </div>
               ) : (
                 <div className="flex items-center justify-between">
-                  <p className="whitespace-pre-wrap">{userData?.workHistory}</p>
+                  <p className="whitespace-pre-wrap text-left">{userData?.workHistory}</p>
                   <Button
                     variant="default"
                     size="sm"

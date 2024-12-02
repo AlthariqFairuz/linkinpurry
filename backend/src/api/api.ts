@@ -103,6 +103,31 @@ const registerSchema = z.object({
   path: ["confirmPassword"], 
 });
 
+const updateProfileSchema = z.object({
+  username: z
+    .string()
+    .min(3, 'Username must be at least 3 characters')
+    .max(255, 'Username must not exceed 255 characters')
+    .regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores'),
+  
+  fullName: z
+    .string()
+    .max(255, 'Full name must not exceed 255 characters')
+    .optional()
+    .nullable(),
+  
+  skills: z
+    .string()
+    .optional()
+    .nullable(),
+  
+  workHistory: z
+    .string()
+    .optional()
+    .nullable(),
+});
+
+
 // Add verify endpoint
 auth.get('/verify', async (c : Context) => {
   try {
@@ -394,10 +419,9 @@ auth.get('/profile/:id', async (c: Context) => {
   }
 });
 
-auth.put('/profile/:id', async (c : Context) => {
+auth.put('/profile/:id', async (c: Context) => {
   try {
     const token = getCookie(c, 'jwt');
-
     if (!token) {
       return c.json({ 
         success: false, 
@@ -423,24 +447,34 @@ auth.put('/profile/:id', async (c : Context) => {
 
     // Parse form data
     const formData = await c.req.formData();
-    
-    const fullName = formData.get('fullName') as string;
-    const username = formData.get('username') as string;
-    const skills = formData.get('skills') as string;
-    const workHistory = formData.get('workHistory') as string;
-    const photo = formData.get('photo') as File | null;
+    const data = {
+      username: formData.get('username'),
+      fullName: formData.get('fullName'),
+      skills: formData.get('skills'),
+      workHistory: formData.get('workHistory'),
+    };
 
-    if (!username) {
+    // Validate the data
+    const result = updateProfileSchema.safeParse(data);
+    if (!result.success) {
+      const errorMessages = result.error.errors.map(err => ({
+        field: err.path.join('.'),
+        message: err.message
+      }));
+
       return c.json({ 
         success: false, 
-        message: 'Invalid username',
-        body: null 
+        message: 'Validation failed',
+        body: errorMessages
       }, 400);
     }
 
+    const validatedData = result.data;
+
+    // Check for existing username
     const existingUser = await prisma.user.findFirst({
       where: { 
-        username: username,
+        username: validatedData.username,
         id: { not: userId }
       } 
     });
@@ -454,28 +488,24 @@ auth.put('/profile/:id', async (c : Context) => {
     }
 
     // Handle photo upload if provided
+    const photo = formData.get('photo') as File | null;
     let profilePhotoPath = user.profilePhotoPath;
+    
     if (photo) {
-      // Convert File to buffer for Cloudinary
       const arrayBuffer = await photo.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
-      
-      // Create file-like object for Cloudinary
       const fileObject = {
         buffer,
         mimetype: photo.type,
       };
-      
       profilePhotoPath = await uploadToCloudinary(fileObject);
     }
 
-    const updatedUser = await prisma.user.update({
+    // Update user with validated data
+    await prisma.user.update({
       where: { id: userId },
       data: {
-        fullName,
-        username,
-        skills,
-        workHistory,
+        ...validatedData,
         profilePhotoPath
       }
     });
@@ -483,19 +513,13 @@ auth.put('/profile/:id', async (c : Context) => {
     return c.json({
       success: true,
       message: 'Update successful',
-      body: {
-        fullName: updatedUser.fullName,
-        username: updatedUser.username,
-        skills: updatedUser.skills,
-        workHistory: updatedUser.workHistory,
-        profilePhotoPath: updatedUser.profilePhotoPath
-      }
+      body: null
     }, 200);
 
   } catch (error) {
     return c.json({ 
       success: false, 
-      message: 'Update failed: ' + error , 
+      message: 'Update failed: ' + error, 
       body: null 
     }, 500);
   }
@@ -636,7 +660,13 @@ auth.get('/network/all-users', async (c : Context) => {
       body: null 
     }, 401);
 
+    const decoded = await verifyToken(token);
+    const userId = BigInt(decoded.userId);
+
     const users = await prisma.user.findMany({
+      where: {
+        id: { not: userId }
+      },
       orderBy: {
         id: 'asc'
       },
@@ -1057,7 +1087,7 @@ auth.post('/accept-request/:id', async (c) => {
         where: {
           fromId_toId: { fromId, toId }
         }
-      })
+      }),
     ]);
 
     return c.json({ 
@@ -1143,14 +1173,25 @@ auth.post('/disconnect/:id', async (c : Context) => {
     }
 
     // Delete the connection
-    await prisma.connection.deleteMany({
-      where: {
-        OR: [
+    await prisma.$transaction([
+      prisma.connection.deleteMany({
+        where: {
+          OR: [
           { fromId, toId },
           { fromId: toId, toId: fromId }
         ]
-      }
-    });
+        }
+      }),
+      // delete any chat in either direction
+      prisma.chat.deleteMany({
+        where: {
+          OR: [
+            { fromId, toId },
+            { fromId: toId, toId: fromId }
+          ]
+        }
+      })
+    ]);
 
     return c.json({
       success: true,
