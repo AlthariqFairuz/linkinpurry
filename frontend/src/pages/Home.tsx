@@ -32,6 +32,7 @@ export default function Home() {
 
   const handleCreatePost = async () => {
     try {
+      setIsLoading(true);
       const response = await fetch('http://localhost:3000/api/feed', {
         method: 'POST',
         headers: {
@@ -46,6 +47,7 @@ export default function Home() {
       const data = await response.json();
       
       if (data.success) {
+        
         toast({
           title: "Success",
           description: "Post created successfully",
@@ -65,6 +67,8 @@ export default function Home() {
         description: error.message || "Failed to create post",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -160,7 +164,7 @@ export default function Home() {
              </div>
  
              {/* Feed Component */}
-             <Feed currentUser={userData} />
+             {isLoading ? <LoadingComponent /> : (<Feed currentUser={userData} />)}
            </div>
  
            {/* Right Sidebar */}
