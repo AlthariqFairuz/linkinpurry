@@ -8,6 +8,7 @@ interface NetworkCardProps {
     requested?: boolean;
     receivedRequest?: boolean;
     showDisconnect?: boolean;
+    allUsers?: boolean;
     onUpdate?: () => void;
   }
 export default NetworkCardProps;

@@ -385,12 +385,11 @@ auth.get('/profile/:id', async (c: Context) => {
     }, 200);
 
   } catch (error) {
-    console.error('Profile error:', error);
     removeTokenCookie(c);
     return c.json({ 
       success: false, 
       message: 'Invalid token', 
-      body: error
+      body: null
     }, 401);
   }
 });
@@ -494,11 +493,10 @@ auth.put('/profile/:id', async (c : Context) => {
     }, 200);
 
   } catch (error) {
-    console.error('Update error:', error);
     return c.json({ 
       success: false, 
-      message: 'Update failed', 
-      body: error 
+      message: 'Update failed: ' + error , 
+      body: null 
     }, 500);
   }
 });
@@ -508,18 +506,20 @@ auth.get('/users/search', async (c : Context) => {
 
     const { q } = c.req.query();
 
-    //case sensitive search ga pake mode insensitive
+    //case insensitive search pake mode insensitive
     const users = await prisma.user.findMany({
       where: {
         OR: [
           {
             username: {
               contains: q,
+              mode: 'insensitive'
             }
           },
           {
             fullName: {
               contains: q,
+              mode: 'insensitive'
             }
           }
         ], 
@@ -558,6 +558,16 @@ auth.get('/connection-status/:id', async (c : Context) => {
   try {
     const toId = BigInt(c.req.param('id'));
 
+    const token = getCookie(c, 'jwt');
+
+    if (!token) {
+      return c.json({ 
+        success: false, 
+        message: 'No token found', 
+        body: null 
+      }, 401);
+    }
+    
     const user = await prisma.user.findUnique({ 
       where: { id: toId }
     });
@@ -570,15 +580,6 @@ auth.get('/connection-status/:id', async (c : Context) => {
       }, 401);
     }
 
-    const token = getCookie(c, 'jwt');
-
-    if (!token) {
-      return c.json({ success: false, 
-        message: 'No token found', 
-        body: null 
-      }, 401);
-    }
-    
     const decoded = await verifyToken(token);
     const decodedUserId = BigInt(decoded.userId);
 
@@ -620,8 +621,55 @@ auth.get('/connection-status/:id', async (c : Context) => {
     return c.json({ 
       success: false, 
       message: 'Failed to retrieve connection status: ' + error, 
-      body: error
+      body: null
     }, 401);
+  }
+});
+
+auth.get('/network/all-users', async (c : Context) => {
+  try {
+
+    const token = getCookie(c, 'jwt');
+    if (!token) return c.json({ 
+      success: false, 
+      message: 'No token found', 
+      body: null 
+    }, 401);
+
+    const users = await prisma.user.findMany({
+      orderBy: {
+        id: 'asc'
+      },
+      select: {
+        id: true,
+        fullName: true,
+        username: true,
+        skills: true,
+        workHistory: true,
+        profilePhotoPath: true
+      }
+    });
+
+    return c.json({
+      success: true,
+      message: 'All users retrieved successfully',
+      body: {
+        connection: users.map(user => ({
+          id: user.id.toString(),
+          fullName: user.fullName,
+          username: user.username,
+          skills: user.skills,
+          workHistory: user.workHistory,
+          profilePhotoPath: user.profilePhotoPath
+        }))
+      }
+    }, 200);
+  } catch (error) {
+    return c.json({
+      success: false,
+      message: 'Failed to retrieve all users: ' + error,
+      body: null
+    }, 500);
   }
 });
 
@@ -755,7 +803,7 @@ auth.get('/network/requested', async (c : Context) => {
     return c.json({ 
       success: false, 
       message: 'Failed to retrieve connection status: ' + error, 
-      body: error 
+      body: null 
     }, 401);
   }
 });
@@ -823,7 +871,7 @@ auth.get('/network/incoming-requests', async (c : Context) => {
     return c.json({ 
       success: false, 
       message: 'Failed to retrieve connection status: ' + error, 
-      body: error 
+      body: null 
     }, 401);
   }
 });
@@ -877,12 +925,11 @@ auth.get('/network/connected', async (c : Context) => {
     }, 200);
 
   } catch (error) {
-    console.log(error);
     removeTokenCookie(c);
     return c.json({ 
       success: false, 
       message: 'Invalid token', 
-      body: error
+      body: null
     }, 401);
   }
 });
@@ -964,7 +1011,7 @@ auth.post('/request/:id', async (c : Context) => {
     return c.json({ 
       success: false, 
       message: 'Failed to send request: ' + error, 
-      body: error
+      body: null
     }, 401);
   }
 });
@@ -1023,7 +1070,7 @@ auth.post('/accept-request/:id', async (c) => {
     return c.json({ 
       success: false, 
       message: 'Failed to accept request: ' + error, 
-      body: error 
+      body: null 
     }, 500);
   }
 });
@@ -1057,7 +1104,7 @@ auth.post('/decline-request/:id', async (c : Context) => {
     return c.json({ 
       success : false, 
       message: 'Failed to decline request: ' + error, 
-      body: error 
+      body: null 
     }, 500);
   }
 });
@@ -1115,8 +1162,8 @@ auth.post('/disconnect/:id', async (c : Context) => {
     console.error('Remove connection error:', error);
     return c.json({ 
       success: false, 
-      message: 'Failed to remove connection', 
-      body: error 
+      message: 'Failed to remove connection: ' + error  , 
+      body: null 
     }, 500);
   }
 });
@@ -1163,10 +1210,9 @@ auth.get('/chat/history/:userId', async (c : Context) => {
       }
     }, 200);
   } catch (error) {
-    console.error('Chat history error:', error);
     return c.json({ 
       success: false, 
-      message: 'Failed to fetch chat history', 
+      message: 'Failed to fetch chat history: ' + error, 
       body: null 
     }, 500);
   }
@@ -1246,10 +1292,9 @@ auth.get('/feed', async (c) => {
     }, 200);
 
   } catch(error) {
-    console.error('Feed error:', error);
     return c.json({ 
       success: false, 
-      message: 'Failed to fetch feed', 
+      message: 'Failed to fetch feed: ' + error, 
       body: null 
     }, 500);
   }
@@ -1283,7 +1328,7 @@ auth.post('/feed', async (c) => {
   } catch(error){
     return c.json({ 
       success: false, 
-      message: error, 
+      message: 'Failed to post feed: ' + error, 
       body: null 
     }, 500);
   }
@@ -1299,7 +1344,7 @@ auth.put('/feed/:post_id', async (c) => {
       body: null 
     }, 401);
 
-    const decoded = await verifyToken(token);
+    await verifyToken(token);
 
     const { content } = await c.req.json(); 
     const post_id = parseInt(c.req.param('post_id'))
@@ -1322,7 +1367,7 @@ auth.put('/feed/:post_id', async (c) => {
   } catch(error){
     return c.json({ 
       success: false, 
-      message: error, 
+      message: 'Failed to update feed: ' + error, 
       body: null 
     }, 500);
   }
@@ -1338,7 +1383,7 @@ auth.delete('/feed/:post_id', async (c) => {
       body: null 
     }, 401);
 
-    const decoded = await verifyToken(token);
+    await verifyToken(token);
 
     const post_id = parseInt(c.req.param('post_id'))
     await prisma.feed.delete({

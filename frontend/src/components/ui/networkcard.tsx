@@ -12,6 +12,7 @@ export function NetworkCard({
   requested = false,
   receivedRequest = false,
   showDisconnect,
+  allUsers = false,
   onUpdate
 }: NetworkCardProps) {
   const { toast } = useToast();
@@ -164,7 +165,8 @@ export function NetworkCard({
         )}
         
         <div className="mt-2 space-x-2">
-          {!showDisconnect && !requested && !receivedRequest && (
+          
+          {!showDisconnect && !requested && !receivedRequest && !allUsers && (
             <Button 
               onClick={handleConnect}
               className="rounded-full"
@@ -172,7 +174,17 @@ export function NetworkCard({
               Connect
             </Button>
           )}
-          
+
+          {allUsers && (
+            <Button 
+              variant="default"
+              className="rounded-full"
+              onClick={() => navigate(`/profile/${userId}`)}
+            >
+              See Profile
+            </Button>
+          )}
+
           {requested && (
             <Button 
               variant="outline"

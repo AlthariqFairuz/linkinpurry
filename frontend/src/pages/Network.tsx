@@ -15,23 +15,25 @@ import { ChevronDown, Users, UserPlus, UserCheck, Clock } from "lucide-react";
 import { NetworkResponse, NetworkApiResponse } from '@/types/Network';
 import LoadingComponent from '@/components/ui/loadingcomponent';
 
-type NetworkSection = 'unconnected' | 'requested' | 'received' | 'connected';
+type NetworkSection = 'allUsers' | 'unconnected' | 'requested' | 'received' | 'connected';
 
 export default function Network() {
   const navigate = useNavigate();
   const [networkData, setNetworkData] = useState<{
+    allUsers: NetworkResponse[];
     unconnected: NetworkResponse[];
     requested: NetworkResponse[];
     received: NetworkResponse[];
     connected: NetworkResponse[];
   }>({
+    allUsers: [],
     unconnected: [],
     requested: [],
     received: [],
     connected: []
   });
   const [isLoading, setIsLoading] = useState(true);
-  const [section, setSection] = useState<NetworkSection>('unconnected');
+  const [section, setSection] = useState<NetworkSection>('allUsers');
   const [error, setError] = useState<string | null>(null);
 
   const fetchNetworkData = async () => {
@@ -39,16 +41,18 @@ export default function Network() {
     setError(null);
     try {
       const responses = await Promise.all([
+        fetch('http://localhost:3000/api/network/all-users', { credentials: 'include' }),
         fetch('http://localhost:3000/api/network/unconnected', { credentials: 'include' }),
         fetch('http://localhost:3000/api/network/requested', { credentials: 'include' }),
         fetch('http://localhost:3000/api/network/incoming-requests', { credentials: 'include' }),
         fetch('http://localhost:3000/api/network/connected', { credentials: 'include' })
       ]);
 
-      const [unconnectedData, requestedData, receivedData, connectedData] = 
+      const [allUsersData, unconnectedData, requestedData, receivedData, connectedData] = 
         await Promise.all(responses.map(r => r.json())) as NetworkApiResponse[];
 
       setNetworkData({
+        allUsers: allUsersData.body?.connection || [],
         unconnected: unconnectedData.body?.connection || [],
         requested: requestedData.body?.connection || [],
         received: receivedData.body?.connection || [],
@@ -69,6 +73,11 @@ export default function Network() {
   const getCurrentData = () => networkData[section] || [];
 
   const sectionConfig = {
+    allUsers: {
+      title: 'All Users',
+      icon: Users,
+      emptyMessage: 'No users available'
+    },
     unconnected: {
       title: 'People you may know',
       icon: Users,
@@ -141,6 +150,18 @@ export default function Network() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-[280px] sm:w-56">
                 <DropdownMenuItem 
+                    onClick={() => setSection('allUsers')}
+                    className="flex items-center justify-between"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Users className="h-4 w-4 " />
+                      All Users
+                    </span>
+                    {networkData.allUsers.length > 0 && (
+                      <Badge variant="secondary">{networkData.allUsers.length}</Badge>
+                    )}
+                </DropdownMenuItem>
+                <DropdownMenuItem 
                   onClick={() => setSection('unconnected')}
                   className="flex items-center justify-between"
                 >
@@ -206,6 +227,7 @@ export default function Network() {
                         fullName={user.fullName || 'No Name'}
                         username={user.username}
                         profilePhotoPath={user.profilePhotoPath}
+                        allUsers={section === 'allUsers'}
                         requested={section === 'requested'}
                         receivedRequest={section === 'received'}
                         onUpdate={handleNetworkUpdate}
