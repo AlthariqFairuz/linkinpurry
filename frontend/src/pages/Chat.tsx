@@ -188,6 +188,9 @@ export default function Chat() {
   const handleContactSelect = async (contact: ChatContact) => {
     setSelectedContact(contact)
     setShowMobileChat(true)
+    
+    // Update the URL to include the selected user's ID
+    window.history.pushState({}, '', `/chat/${contact.id}`)
   
     try {
       const response = await fetch(
@@ -206,7 +209,7 @@ export default function Chat() {
           sender: msg.fromId === currentUserId ? 'Me' : contact.name,
           content: msg.message,
           timestamp: new Date(msg.timestamp).toLocaleTimeString(),
-          isMe: msg.fromId === currentUserId,  // Check against actual user ID
+          isMe: msg.fromId === currentUserId, 
         }))
         setMessages(formattedMessages)
   
