@@ -286,7 +286,7 @@ export const DetailProfile = () => {
       <Navbar />
       
       {isLoading ? <LoadingComponent /> : (
-        <main className="pt-16 pb-8">
+        <main className="pt-16 pb-32">
           <div className="max-w-[1128px] mx-auto px-4 space-y-4">
             {/* Profile Header */}
             <DetailProfileHeader
@@ -330,7 +330,7 @@ export const DetailProfile = () => {
                   userId={id || ''}
                   isLoggedIn={isLoggedIn}
                   profilePhotoPath={profileData.profilePhotoPath}
-                  fullName={profileData.fullName || ''}
+                  fullName={profileData.fullName}
                   latestPost={profileData.latestPost}
                 />
               </div>

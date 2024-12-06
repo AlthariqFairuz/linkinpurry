@@ -131,7 +131,7 @@ export default function Profile() {
     <div className="min-h-screen bg-[#f3f2ef] pb-[68px]">
       <Navbar/>   
       {isLoading ? <LoadingComponent /> : (
-        <main className="pt-20 pb-8">
+        <main className="pt-20 pb-32">
           <div className="max-w-3xl mx-auto px-4 space-y-6">
             <Card>
             <CardHeader>

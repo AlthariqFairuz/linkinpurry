@@ -1,6 +1,6 @@
 export default function Footer() {
   return (
-    <footer className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 py-4 z-10">
+    <footer className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 py-4 z-10 ">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-xs text-gray-600">
         <a href="#" className="hover:text-[#0a66c2] hover:underline">About</a>

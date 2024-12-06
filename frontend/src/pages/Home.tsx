@@ -101,7 +101,7 @@ export default function Home() {
       <Navbar />
 
       {isLoading ? <LoadingComponent /> : (
-         <main className="pt-20 pb-16">
+         <main className="pt-20 pb-32">
          <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-12 gap-4">
            {/* Left Sidebar */}
            <div className="md:col-span-3 space-y-4">

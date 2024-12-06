@@ -262,7 +262,7 @@ export default function Chat() {
   );
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
+    <div className="flex flex-col min-h-screen bg-gray-50 pb-32">
       {/* Navbar - Hidden on mobile when in chat view */}
       <div className={showMobileChat ? "hidden md:block" : "block"}>
         <Navbar />

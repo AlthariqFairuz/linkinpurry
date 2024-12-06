@@ -1,15 +1,7 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { format } from 'date-fns';
-import { Post } from '@/types/Post';
-
-interface LatestPostSidebarProps {
-  userId: string;
-  isLoggedIn: boolean;
-  profilePhotoPath: string;
-  fullName: string;
-  latestPost: Post | null;
-}
+import { LatestPostSidebarProps } from '@/types/LatestPostSidebarProps';
 
 const LatestPostSidebar = ({ isLoggedIn, profilePhotoPath, fullName, latestPost }: LatestPostSidebarProps) => {
 
@@ -44,13 +36,13 @@ const LatestPostSidebar = ({ isLoggedIn, profilePhotoPath, fullName, latestPost 
                 <AvatarFallback>{fullName[0]}</AvatarFallback>
               </Avatar>
               <div>
-                <p className="font-medium">{fullName}</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="font-medium text-left break-words max-w-[200px]">{fullName}</p>
+                <p className="text-sm text-muted-foreground text-left break-words max-w-[200px]">
                   {format(new Date(latestPost.createdAt), 'MMM d, yyyy')}
                 </p>
               </div>
             </div>
-            <p className="text-sm text-gray-600">{latestPost.content}</p>
+            <p className="text-sm text-gray-600 break-words max-w-[200px]">{latestPost.content}</p>
           </div>
         ) : (
           <p className="text-sm text-muted-foreground">No posts yet</p>

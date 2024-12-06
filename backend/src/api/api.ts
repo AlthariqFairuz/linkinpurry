@@ -4,7 +4,7 @@ import { getCookie, setCookie } from 'hono/cookie'
 import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
-import { prisma, redis } from '../db/connections.js';
+import { prisma } from '../db/connections.js';
 import { uploadToCloudinary } from '../utils/cloudinary.js';
 import type { JWTPayload } from '../types/JWTPayload.js';
 
@@ -333,6 +333,7 @@ auth.get('/profile/:id', async (c: Context) => {
         success: true,
         message: 'Public Profile',
         body: {
+          username: user.username,
           fullName: user.fullName,
           skills: user.skills,
           workHistory: user.workHistory,
@@ -850,34 +851,22 @@ auth.get('/network/incoming-requests', async (c : Context) => {
     const decoded = await verifyToken(token);
     const userId = BigInt(decoded.userId);
 
-    const users = await prisma.user.findMany({ 
+   const requests = await prisma.connectionRequest.findMany({
       where: {
-        AND: [
-          { sentRequests: {
-            some: {
-              toId: userId
-            }
-          }
-          },
-          {
-            NOT: {
-              // sama juga, current user Belum terhubung dengan user X secara timbal balik
-              OR: [
-              { receivedConnections: { some: { fromId: userId } } },
-                { sentConnections: { some: { toId: userId } } }
-              ]
-            }
-          }
-        ]
+        toId: userId,
+        NOT: {
+          // sama juga, current user Belum terhubung dengan user X secara timbal balik
+          OR: [
+            { from: { receivedConnections: { some: { fromId: userId } } } },
+            { from: { sentConnections: { some: { toId: userId } } } }
+          ]
+        }
       },
-      // cek incoming requests
-      select: {
-        id: true,
-        fullName: true,
-        username: true,
-        skills: true,
-        workHistory: true,
-        profilePhotoPath: true,
+      include: {
+        from: true // join dengan table user
+      },
+      orderBy: {
+        createdAt: 'desc'
       }
     });
 
@@ -885,13 +874,13 @@ auth.get('/network/incoming-requests', async (c : Context) => {
       success: true,
       message: 'Incoming requests retrieved successfully',
       body: {
-        connection: users.map(user => ({
-          id: user.id.toString(),
-          fullName: user.fullName,
-          username: user.username,
-          skills: user.skills,
-          workHistory: user.workHistory,
-          profilePhotoPath: user.profilePhotoPath
+        connection: requests.map(request => ({
+          id: request.from.id.toString(),
+          fullName: request.from.fullName,
+          username: request.from.username,
+          skills: request.from.skills,
+          workHistory: request.from.workHistory,
+          profilePhotoPath: request.from.profilePhotoPath,
         }))
       }
     }, 200);

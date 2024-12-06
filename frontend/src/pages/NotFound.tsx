@@ -13,7 +13,7 @@ export default function NotFound() {
       <Navbar />
       
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 pb-32">
         <div className="max-w-xl mx-auto text-center">
           {/* Error Message */}
           <h1 className="text-6xl font-bold text-gray-900 mb-4">404</h1>

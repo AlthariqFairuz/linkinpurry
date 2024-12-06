@@ -117,7 +117,7 @@ export default function Network() {
     <div className="min-h-screen bg-[#f3f2ef]">
       <Navbar />
       
-      <main className="pt-20 pb-8">
+      <main className="pt-20 pb-32">
         <div className="max-w-[1128px] mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header Section */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
