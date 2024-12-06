@@ -86,6 +86,23 @@ export const swaggerConfig: OpenAPI.Document = {
           read: { type: 'boolean' },
           readAt: { type: 'string' }
         }
+      },
+      Post: {
+        type: 'object',
+        properties: {
+          id: { type: 'string '},
+          userId: { type: 'string '},
+          content: { type: 'string '},
+          createdAt: { type: 'string '},
+          updatedAt: { type: 'string '},
+          user: {
+            type: 'object',
+            properties: {
+              fullName: { type: 'string '},
+              profilePhotoPath: { type: 'string '}
+            }
+          }
+        }
       }
     }
   },
@@ -423,6 +440,52 @@ export const swaggerConfig: OpenAPI.Document = {
           }
         }
       },
+    },
+    '/api/network/all-users': {
+      get: {
+        tags: ['Network'],
+        summary: 'Get all users',
+        security: [
+          { cookieAuth: [] }
+        ],
+        responses: {
+          '200': {
+            description: 'All users retrieved successfully',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: { type: 'boolean' },
+                    message: { type: 'string' },
+                    body: {
+                      type: 'object',
+                      properties: {
+                        connection: {
+                          type: 'array',
+                          items: {
+                            type: 'object',
+                            properties: {
+                              fullName: { type: 'string' },
+                              username: { type: 'string' },
+                              skills: { type: 'string' },
+                              workHistory: { type: 'string' },
+                              profilePhotoPath: { type: 'string' }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          '401': {
+            description: 'Failed operation'
+          }
+        }
+      }
     },
     '/api/network/unconnected': {
       get: {
@@ -776,6 +839,155 @@ export const swaggerConfig: OpenAPI.Document = {
           },
           '500': {
             description: 'Failed to fetch chat history'
+          }
+        }
+      }
+    },
+    '/api/feed': {
+      get: {
+        tags: ['Feed'],
+        summary: 'Get posts',
+        security: [
+          { cookieAuth: [] }
+        ],
+        parameters: [
+          {
+            name: 'limit',
+            in: 'query',
+            required: true,
+            schema: {
+              type: 'integer'
+            }
+          },
+          {
+            name: 'cursor',
+            in: 'query',
+            required: true,
+            schema: {
+              type: 'integer'
+            }
+          }
+        ],
+        responses: {
+          '200': {
+            description: '"Feed data successfully fetched',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: { type: 'boolean' },
+                    message: { type: 'string' },
+                    body: {
+                      type: 'array',
+                      items: {
+                        $ref: '#/components/schemas/Post'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          '401': {
+            description: 'No token found'
+          },
+          '500': {
+            description: 'Failed to fetch feed'
+          }
+        }
+      },
+      post: {
+        tags: ['Feed'],
+        summary: 'Create new post',
+        security: [
+          { cookieAuth: [] }
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'text/plain': {
+              schema: {
+                type: 'string'
+              }
+            }
+          }
+        },
+        responses: {
+          '200': {
+            description: 'Feed Post Successful'
+          },
+          '401': {
+            description: 'No token found'
+          },
+          '500': {
+            description: 'Failed to post feed'
+          }
+        }
+      },
+      put: {
+        tags: ['Feed'],
+        summary: 'Edit post',
+        security: [
+          { cookieAuth: [] }
+        ],
+        parameters: [
+          {
+            name: 'post_id',
+            in: 'path',
+            required: true,
+            schema: {
+              type: 'integer'
+            }
+          }
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'text/plain': {
+              schema: {
+                type: 'string'
+              }
+            }
+          }
+        },
+        responses: {
+          '200': {
+            description: 'Feed Update Successful'
+          },
+          '401': {
+            description: 'No token found'
+          },
+          '500': {
+            description: 'Failed to update feed'
+          }
+        }
+      },
+      delete: {
+        tags: ['Feed'],
+        summary: 'Delete post',
+        security: [
+          { cookieAuth: [] }
+        ],
+        parameters: [
+          {
+            name: 'post_id',
+            in: 'path',
+            required: true,
+            schema: {
+              type: 'integer'
+            }
+          }
+        ],
+        responses: {
+          '200': {
+            description: 'Feed Delete Successful'
+          },
+          '401': {
+            description: 'No token found'
+          },
+          '500': {
+            description: 'Failed to update feed'
           }
         }
       }
