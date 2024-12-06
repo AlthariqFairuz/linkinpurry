@@ -10,17 +10,19 @@ COPY ./.env.example ./.env
 # Install dependencies
 RUN npm install
 
-# # Copy prisma schema
-# COPY prisma ./prisma/
+# Copy prisma schema
+COPY prisma ./prisma/
 
-# # Generate Prisma Client
-# RUN npx prisma generate
+# Generate Prisma Client
+RUN npx prisma generate
 
-# Copy application code
-# COPY . . Biar bisa hot reload
+# Copy application code (disable for hot reload)
+COPY . . 
+
+RUN npm run build
 
 # Expose port
 EXPOSE 3000
 
 # Start the application
-CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "dev", "start"]
