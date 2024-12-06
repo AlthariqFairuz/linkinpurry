@@ -4,7 +4,7 @@ import { getCookie, setCookie } from 'hono/cookie'
 import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
-import { prisma } from '../db/connections.js';
+import { prisma, redis } from '../db/connections.js';
 import { uploadToCloudinary } from '../utils/cloudinary.js';
 import type { JWTPayload } from '../types/JWTPayload.js';
 

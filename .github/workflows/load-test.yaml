@@ -7,7 +7,7 @@ env:
   ORCHESTRATOR_TOKEN: ${{ secrets.ORCHESTRATOR_TOKEN }}
   DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
   DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-  DOCKER_IMAGE: ${{ secrets.DOCKER_USERNAME }}/${{ secrets.TEAM_NAME }}:latest
+  DOCKER_IMAGE: ${{ secrets.DOCKER_USERNAME }}/${{ secrets.TEAM_NAME }}:${{ github.sha }}
   TEAM_NAME: ${{ secrets.TEAM_NAME }}
 
 jobs:
@@ -31,17 +31,25 @@ jobs:
 
       - name: Build the docker image
         working-directory: backend
-        run: docker build -t ${{ env.DOCKER_IMAGE }} .
+        run: |
+          docker build -t ${{ env.DOCKER_IMAGE }} .
+
+
+      - name: Save .env file
+        run: |
+          echo ${{ secrets.ENV_FILE_BASE64 }} | base64 --decode > backend/.env
+        shell: bash
 
       - name: Push the docker image
         working-directory: backend
-        run: docker push ${{ env.DOCKER_IMAGE }}
+        run: |
+          docker push ${{ env.DOCKER_IMAGE }}
 
   start-server:
     needs: push-to-registry
     runs-on: ubuntu-latest
     outputs:
-      server-endpoint: ${{ fromJson(steps.httpdeploy.response.body).endpoint }}
+      server-endpoint: ${{ fromJson(steps.httpdeploy.outputs.response).endpoint }}
     steps:
       - name: Call start server from orchestrator
         id: httpdeploy
@@ -50,13 +58,13 @@ jobs:
           url: ${{ env.ORCHESTRATOR_ENDPOINT }}/deploy
           method: POST
           customHeaders: '{"Authorization": "token ${{ env.ORCHESTRATOR_TOKEN }}"}'
-          data: '{"team": "${{ env.TEAM_NAME }}"}'
+          data: '{"team": "${{ env.TEAM_NAME }}", "image": "${{ env.DOCKER_IMAGE }}"}'
 
       - name: Wait for service to be healthy
         run: |
           INTERVAL=5   # Interval between checks in seconds
           RETRIES=36   # Maximum number of retries
-          CHECK_URL="${{ fromJson(steps.httpdeploy.response.body).endpoint }}/health"  # URL to check
+          CHECK_URL="${{ fromJson(steps.httpdeploy.outputs.response).endpoint }}/health"  # URL to check
 
           for ((i=0; i<RETRIES; i++)); do
             response=$(curl --fail --silent --output /dev/null $CHECK_URL && echo "200" || echo "non-200")
@@ -80,8 +88,9 @@ jobs:
 
       - name: Set up load testing tool
         run: |
-          sudo apt-get update
-          sudo apt-get install -y k6
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
@@ -92,8 +101,14 @@ jobs:
         run: npm install
         working-directory: tests
 
-      - name: Start Server
-        run: npm start
+      - name: Test profile
+        run: npm run test:profile
+        working-directory: tests
+        env:
+          SERVER_ENDPOINT: ${{ needs.start-server.outputs.server-endpoint }}
+
+      - name: Test feed
+        run: npm run test:feed
         working-directory: tests
         env:
           SERVER_ENDPOINT: ${{ needs.start-server.outputs.server-endpoint }}
@@ -101,11 +116,12 @@ jobs:
   destroy-server:
     needs: load-test
     runs-on: ubuntu-latest
+    if: always()
     steps:
       - name: Call destroy server from orchestrator
         uses: fjogeleit/http-request-action@v1
         with:
           url: ${{ env.ORCHESTRATOR_ENDPOINT }}/destroy
-          method: POST
+          method: DELETE
           customHeaders: '{"Authorization": "token ${{ env.ORCHESTRATOR_TOKEN }}"}'
-          data: '{"repo": "${{ github.repository }}"}'
+          data: '{"team": "${{ env.TEAM_NAME }}"}'

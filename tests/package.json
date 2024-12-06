@@ -4,7 +4,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "k6 run index.js"
+    "test:profile": "k6 run profile.js",
+    "test:feed": "k6 run feed.js"
   },
   "keywords": [],
   "author": "",

@@ -28,7 +28,17 @@ export default function Chat() {
   const scrollRef = useRef<HTMLDivElement>(null)
   const wsService = useRef<WebSocketService>(WebSocketService.getInstance())
   const [socket, setSocket] = useState<Socket | null>(null)
+  const typingTimeoutRef = useRef<NodeJS.Timeout>()
 
+  const scrollToBottom = useCallback(() => {
+    if (scrollRef.current) {
+      const scrollElement = scrollRef.current;
+      scrollElement.scrollTo({
+        top: scrollElement.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+  }, []);
 
   // Setup socket listeners as a callback to prevent recreation
   const setupSocketListeners = useCallback((socket: Socket) => {
@@ -46,7 +56,8 @@ export default function Chat() {
       }
       
       setMessages(prev => [...prev, newMessage])
-      
+      scrollToBottom();
+
       if (selectedContact && !document.hidden && socket) {
         // Handle read status directly here
         const messageId = data.id;
@@ -78,6 +89,13 @@ export default function Chat() {
     socket.on('user_typing', ({ userId }: { userId: string }) => {
       if (selectedContact?.id.toString() === userId) {
         setIsTyping(true)
+        if (typingTimeoutRef.current) {
+          clearTimeout(typingTimeoutRef.current)
+        }
+
+        typingTimeoutRef.current = setTimeout(() => {
+          setIsTyping(false)
+        }, 3000)
       }
     })
 
@@ -86,7 +104,7 @@ export default function Chat() {
         setIsTyping(false)
       }
     })
-  }, [selectedContact])
+  }, [selectedContact, scrollToBottom])
 
   // Initialize WebSocket and load contacts
   useEffect(() => {
@@ -109,14 +127,7 @@ export default function Chat() {
         currentSocket.disconnect()
       }
     }
-  }, [setupSocketListeners])
-
-  // Auto-scroll to bottom when new messages arrive
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
-    }
-  }, [messages])
+  }, [setupSocketListeners])  
 
   const loadContacts = async () => {
     try {
@@ -126,16 +137,27 @@ export default function Chat() {
       const data = await response.json()
 
       if (data.success) {
-        const formattedContacts = data.body.connection.map((user: UserData) => ({
-          id: parseInt(user.id),
-          name: user.fullName,
-          avatar: user.profilePhotoPath,
-          lastMessage: "",
-          unread: 0,
-          online: false,
-          lastActive: null
-        }))
-        setContacts(formattedContacts)
+        const contactsWithMessages = await Promise.all(
+          data.body.connection.map(async (user: UserData) => {
+            const messageResponse = await fetch(
+              `http://localhost:3000/api/chat/history/${user.id}`,
+              { credentials: 'include' }
+            );
+            const messageData = await messageResponse.json();
+            const lastMessage = messageData.body.messages[messageData.body.messages.length - 1];
+            
+            return {
+              id: parseInt(user.id),
+              name: user.fullName,
+              avatar: user.profilePhotoPath,
+              lastMessage: lastMessage?.message || "",
+              unread: 0,
+              online: false,
+              lastActive: null
+            };
+          })
+        );
+        setContacts(contactsWithMessages);
       }
     } catch (error) {
       console.error('Failed to load contacts:', error)
