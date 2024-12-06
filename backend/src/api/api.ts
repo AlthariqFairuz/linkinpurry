@@ -526,6 +526,47 @@ auth.put('/profile/:id', async (c: Context) => {
   }
 });
 
+auth.get('/connections/:userId', async (c: Context) => {
+  try {
+    const userId = BigInt(c.req.param('userId'));
+    
+    const connections = await prisma.connection.findMany({
+      where: {
+        fromId: userId
+      },
+      include: {
+        to: {
+          select: {
+            id: true,
+            fullName: true,
+            username: true,
+            profilePhotoPath: true,
+            skills: true,
+            workHistory: true
+          }
+        }
+      }
+    });
+
+    return c.json({
+      success: true,
+      message: 'List of connections retrieved successfully',
+      body: {
+        connections: connections.map(conn => ({
+          ...conn.to,
+          id: conn.to.id.toString()
+        }))
+      }
+    }, 200);
+  } catch (error) {
+    return c.json({
+      success: false,
+      message: 'Failed to retrieve connections',
+      body: null
+    }, 500);
+  }
+});
+
 auth.get('/users/search', async (c : Context) => {
   try {
 

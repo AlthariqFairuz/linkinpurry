@@ -153,7 +153,7 @@ export function NetworkCard({
       
       <div className="flex-1 min-w-0">
         <div 
-          className="font-medium text-black hover:text-blue-600 cursor-pointer truncate"
+          className="font-medium text-black cursor-pointer truncate"
           onClick={() => navigate(`/profile/${userId}`)}
         >
           {fullName || 'No Name'}

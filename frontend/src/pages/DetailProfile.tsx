@@ -290,6 +290,7 @@ export const DetailProfile = () => {
           <div className="max-w-[1128px] mx-auto px-4 space-y-4">
             {/* Profile Header */}
             <DetailProfileHeader
+              id={ id }
               fullName={profileData.fullName}
               connections={profileData.connections}
               profilePhotoPath={profileData.profilePhotoPath}
@@ -300,6 +301,7 @@ export const DetailProfile = () => {
               onDecline={handleDecline}
               onDisconnect={handleDisconnect}
             />
+            
 
             <div className="grid grid-cols-1 md:grid-cols-[minmax(0,2fr)_1fr] gap-4">
               <div className="space-y-4">
@@ -324,7 +326,7 @@ export const DetailProfile = () => {
                 </Card>
               </div>
 
-              {/* Right Sidebar */}
+              {/* Right Sidebar - Not visible for unregistered users*/}
               <div className="space-y-4">
                 <LatestPostSidebar
                   userId={id || ''}

@@ -1,6 +1,7 @@
 export type ConnectionStatusDetailProfile = 'unconnected' | 'pending-sent' | 'pending-received' | 'connected';
 
 interface DetailProfileHeaderProps {
+    id: string;
     fullName: string;
     connections: number;
     profilePhotoPath: string;

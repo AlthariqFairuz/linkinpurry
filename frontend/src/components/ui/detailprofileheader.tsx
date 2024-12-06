@@ -3,8 +3,10 @@ import { Button } from "@/components/ui/button";
 import { ProfilePicture } from '@/components/ui/profilephoto';
 import { Clock } from "lucide-react";
 import DetailProfileHeaderProps from "@/types/DetailProfileHeader";
+import { useNavigate } from "react-router-dom";
 
 const DetailProfileHeader = ({ 
+  id,
   fullName, 
   connections, 
   profilePhotoPath,
@@ -15,6 +17,7 @@ const DetailProfileHeader = ({
   onDecline,
   onDisconnect 
 }: DetailProfileHeaderProps) => {
+  const navigate = useNavigate();
   const renderConnectionButton = () => {
     if (!isLoggedIn) {
       return (
@@ -102,7 +105,12 @@ const DetailProfileHeader = ({
           {/* Name and Connections */}
           <div className="space-y-1">
             <h2 className="text-2xl font-semibold">{fullName}</h2>
-            <p className="text-gray-600 text-sm">{connections} connections</p>
+            <button 
+              onClick={() => navigate(`/profile/${id}/connections`)}
+              className="bg-transparent text-gray-600 text-sm no-underline hover:text-blue-600 hover:underline transition-colors"
+            >
+              {connections} connections
+            </button>
           </div>
 
           {/* Connection Button */}

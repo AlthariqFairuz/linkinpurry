@@ -219,7 +219,7 @@ export default function Network() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {getCurrentData().length > 0 ? (
                 getCurrentData().map((user) => (
-                  <Card key={user.id} className="overflow-hidden">
+                  <Card key={user.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                     <CardContent className="p-4">
                       <NetworkCard
                         userId={user.id}

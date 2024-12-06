@@ -9,6 +9,7 @@ import DetailProfile from '../pages/DetailProfile';
 import Network from '@/pages/Network';
 import Loading from '@/components/ui/loading';
 import ChatInterface from '@/pages/Chat';
+import DaftarKoneksi from '@/pages/DaftarKoneksi';
 
 function PrivateRoute({ children }) {
   const { isAuthenticated, isLoading } = useAuthCheck();
@@ -62,6 +63,12 @@ export default function AppRoutes() {
         <Route path='/profile/:id' element={
           <PublicRoute>
             <DetailProfile />
+          </PublicRoute>
+        }/>
+
+        <Route path='/profile/:id/connections' element={
+          <PublicRoute>
+            <DaftarKoneksi />
           </PublicRoute>
         }/>
 
