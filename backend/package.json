@@ -4,7 +4,9 @@
   "scripts": {
     "migrate": "prisma migrate deploy",
     "generate": "prisma generate",
-    "dev": "npm run migrate && npm run generate && tsx watch --clear-screen=false src/index.ts"
+    "dev": "npm run migrate && npm run generate && tsx watch --clear-screen=false src/index.ts",
+    "build": "npm run migrate && npm run generate && tsc",
+    "start": "node dist/index.js"
   },
   "dependencies": {
     "@hono/node-server": "^1.13.7",
