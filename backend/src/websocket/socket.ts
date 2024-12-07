@@ -21,11 +21,11 @@ export function initializeWebSocket(httpServer: HttpServer) {
       allowedHeaders: ["Content-Type", "Authorization"]
     },
     path: '/socket.io/', 
-    transports: ['websocket', 'polling'] 
+    transports: ['websocket'] 
   });
 
   // keep track user yang sedang online via socket.id dan typing status
-  const activeUsers = new Map<string, UserStatus>();
+  const activeUsers = new Map<string, string>();
   const typingTimeouts = new Map<string, NodeJS.Timeout>(); // NodeJS.Timeout intinya itu representasi dari built-in type yang merepresentasikan sebuah timeout object
 
   io.on('connection', (socket) => {
@@ -35,19 +35,13 @@ export function initializeWebSocket(httpServer: HttpServer) {
     socket.on('join', (userId: string) => {
       try {
         // Update user status
-        activeUsers.set(userId, {
-          socketId: socket.id,
-          lastActive: new Date(),
-          typing: false
-        });
+        activeUsers.set(userId, socket.id);
 
         // Join user's own room for private messages
         socket.join(userId);
 
         console.log(`User ${userId} joined with socket ${socket.id}`);
 
-        // Notify other users about online status
-        socket.broadcast.emit('user_online', userId);
       } catch (error) {
         console.error('Error in join handler:', error);
         socket.emit('error', { message: 'Failed to join chat' });
@@ -61,8 +55,8 @@ export function initializeWebSocket(httpServer: HttpServer) {
     
         // Find the fromId from activeUsers based on socket.id
         let fromId: string | undefined;
-        for (const [userId, status] of activeUsers.entries()) {
-          if (status.socketId === socket.id) {
+        for (const [userId, socketId] of activeUsers.entries()) {
+          if (socketId === socket.id) {
             fromId = userId;
             break;
           }
@@ -88,7 +82,6 @@ export function initializeWebSocket(httpServer: HttpServer) {
         });
 
         const messagePayload = {
-          id: chatMessage.id.toString(),
           fromId,
           toId: data.toId,
           message: trimmedMessage,
@@ -96,13 +89,13 @@ export function initializeWebSocket(httpServer: HttpServer) {
         };
 
         // Get recipient's socket info
-        const recipientStatus = activeUsers.get(data.toId);
+        const recipientSocketId = activeUsers.get(data.toId);
         
         // Emit to recipient if online
-        if (recipientStatus?.socketId) {
-          io.to(recipientStatus.socketId).emit('receive_message', messagePayload);
+        if (recipientSocketId) {
+          io.to(recipientSocketId).emit('receive_message', messagePayload);
         }
-    
+        
         // Emit back to sender for confirmation
         socket.emit('message_sent', messagePayload);
     
@@ -119,8 +112,8 @@ export function initializeWebSocket(httpServer: HttpServer) {
     socket.on('get_chat_history', async (conversationId: string) => {
       try {
         let userId: string | undefined;
-        for (const [id, status] of activeUsers.entries()) {
-          if (status.socketId === socket.id) {
+        for (const [id, socketId] of activeUsers.entries()) {
+          if (socketId === socket.id) {
             userId = id;
             break;
           }
@@ -168,69 +161,25 @@ export function initializeWebSocket(httpServer: HttpServer) {
           clearTimeout(existingTimeout);
         }
 
-        // Set typing status
-        const userStatus = activeUsers.get(fromId);
-        if (userStatus) {
-          userStatus.typing = true;
-          activeUsers.set(fromId, userStatus);
-        }
-
         // Notify recipient
-        const recipientStatus = activeUsers.get(toId);
-        if (recipientStatus?.socketId) {
-          io.to(recipientStatus.socketId).emit('user_typing', { userId: fromId });
+        const recipientSocketId = activeUsers.get(toId);
+        if (recipientSocketId) {
+          io.to(recipientSocketId).emit('user_typing', { userId: fromId });
         }
-
-        // Set timeout to clear typing status
+        // Auto-clear typing status after 3 seconds
         const timeout = setTimeout(() => {
-          const userStatus = activeUsers.get(fromId);
-          if (userStatus) {
-            userStatus.typing = false;
-            activeUsers.set(fromId, userStatus);
+          const recipientSocketId = activeUsers.get(toId);
+          if (recipientSocketId) {
+            io.to(recipientSocketId).emit('user_stopped_typing', { userId: fromId });
           }
-          
-          // Notify recipient of stopped typing
-          const recipientStatus = activeUsers.get(toId);
-          if (recipientStatus?.socketId) {
-            io.to(recipientStatus.socketId).emit('user_stopped_typing', { userId: fromId });
-          }
-          
           typingTimeouts.delete(fromId);
         }, 3000);
 
         typingTimeouts.set(fromId, timeout);
 
+
       } catch (error) {
         console.error('Error handling typing indicator:', error);
-      }
-    });
-
-    // Explicit typing end event
-    socket.on('typing_end', (data: { fromId: string, toId: string }) => {
-      try {
-        const { fromId, toId } = data;
-        
-        // Clear existing timeout
-        const existingTimeout = typingTimeouts.get(fromId);
-        if (existingTimeout) {
-          clearTimeout(existingTimeout);
-          typingTimeouts.delete(fromId);
-        }
-
-        // Update user status
-        const userStatus = activeUsers.get(fromId);
-        if (userStatus) {
-          userStatus.typing = false;
-          activeUsers.set(fromId, userStatus);
-        }
-
-        // Notify recipient
-        const recipientStatus = activeUsers.get(toId);
-        if (recipientStatus?.socketId) {
-          io.to(recipientStatus.socketId).emit('user_stopped_typing', { userId: fromId });
-        }
-      } catch (error) {
-        console.error('Error handling typing end:', error);
       }
     });
 
@@ -238,8 +187,8 @@ export function initializeWebSocket(httpServer: HttpServer) {
     socket.on('disconnect', () => {
       try {
         // Find and remove user from active users
-        for (const [userId, status] of activeUsers.entries()) {
-          if (status.socketId === socket.id) {
+        for (const [userId, socketId] of activeUsers.entries()) {
+          if (socketId === socket.id) {
             // Clear any existing typing timeouts
             const existingTimeout = typingTimeouts.get(userId);
             if (existingTimeout) {

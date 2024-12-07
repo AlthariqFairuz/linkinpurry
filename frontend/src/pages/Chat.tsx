@@ -11,7 +11,7 @@ import { ChatMessage } from "@/types/ChatMessage"
 import { Navbar } from "@/components/ui/navbar"
 import Footer from "@/components/ui/footer"
 import { toast } from "@/hooks/use-toast"
-import WebSocketService from "@/websocket/websocket"
+import { emitTypingStart, emitTypingEnd, getUserId, initializeSocket, emitPrivateMessage } from "@/websocket/websocket"
 import { Socket } from "socket.io-client"
 import { ChatHistoryMessage } from "@/types/ChatHistoryMessage"
 import { MessageData } from "@/types/MessageData"
@@ -26,7 +26,6 @@ export default function Chat() {
   const [showMobileChat, setShowMobileChat] = useState(false)
   const [isTyping, setIsTyping] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
-  const wsService = useRef<WebSocketService>(WebSocketService.getInstance())
   const [socket, setSocket] = useState<Socket | null>(null)
   const typingTimeoutRef = useRef<NodeJS.Timeout>()
 
@@ -44,42 +43,36 @@ export default function Chat() {
   const setupSocketListeners = useCallback((socket: Socket) => {
     
     socket.on('receive_message', (data: MessageData) => {
-      const currentUserId = wsService.current.getUserId();
-      const newMessage: ChatMessage = {
-        id: data.id,
-        fromId: data.fromId,
-        toId: data.toId,
-        sender: data.fromId === currentUserId ? 'Me' : selectedContact?.name || 'LinkedInPurry Member',
-        content: data.message,
-        timestamp: new Date(data.timestamp).toLocaleTimeString(),
-        isMe: data.fromId === currentUserId,  // Check against actual user ID
-      }
+      const currentUserId = getUserId();
       
-      setMessages(prev => [...prev, newMessage])
-      scrollToBottom();
-
-      if (selectedContact && !document.hidden && socket) {
-        // Handle read status directly here
-        const messageId = data.id;
-        socket.emit('mark_messages_read', {
-          conversationId: selectedContact.id.toString(),
-          messageIds: [messageId]
-        });
-  
-        setMessages(prevMessages => 
-          prevMessages.map(msg => 
-            msg.id === messageId
-              ? { ...msg, read: true, readAt: new Date() }
-              : msg
-          )
-        );
+      if (selectedContact && (
+        // validasi message dari contact ke user atau dari user ke contact
+        (data.fromId === selectedContact.id.toString() && data.toId === currentUserId) ||
+        (data.fromId === currentUserId && data.toId === selectedContact.id.toString())
+      )) {
+        const newMessage: ChatMessage = {
+          id: data.id,
+          fromId: data.fromId,
+          toId: data.toId,
+          sender: data.fromId === currentUserId ? 'Me' : selectedContact.name,
+          content: data.message,
+          timestamp: new Date(data.timestamp).toLocaleTimeString(),
+          isMe: data.fromId === currentUserId,
+        }
+        
+        setMessages(prev => [...prev, newMessage]);
+        scrollToBottom();
       }
       setContacts(prev => prev.map(contact => {
-        if (contact.id.toString() === data.fromId) {
+        if (contact.id.toString() === data.fromId || contact.id.toString() === data.toId) {
           return {
             ...contact,
             lastMessage: data.message,
-            unread: document.hidden ? (contact.unread || 0) + 1 : 0
+            // increment unread only if message is from other user and not in current chat
+            unread: (data.fromId === contact.id.toString() && 
+                     (!selectedContact || selectedContact.id.toString() !== contact.id.toString()))
+              ? (contact.unread || 0) + 1 
+              : contact.unread
           }
         }
         return contact
@@ -111,7 +104,7 @@ export default function Chat() {
     let currentSocket: Socket | null = null;
 
     const initializeChat = async () => {
-      const socketInstance = await wsService.current.initialize()
+      const socketInstance = await initializeSocket()
       if (socketInstance) {
         currentSocket = socketInstance;
         setSocket(socketInstance)
@@ -178,7 +171,7 @@ export default function Chat() {
       timestamp: new Date()
     }
 
-    wsService.current.emitPrivateMessage(messageData)
+    emitPrivateMessage(messageData)
 
     const newMessage: ChatMessage = {
       id: Date.now().toString(),
@@ -198,11 +191,11 @@ export default function Chat() {
     
     if (!socket || !selectedContact) return
 
-    wsService.current.emitTypingStart(selectedContact.id.toString())
+    emitTypingStart(selectedContact.id.toString())
     
     // Debounce typing end
     setTimeout(() => {
-      wsService.current.emitTypingEnd(selectedContact.id.toString())
+      emitTypingEnd(selectedContact.id.toString())
     }, 1000)
   }
 
@@ -222,7 +215,7 @@ export default function Chat() {
       const data = await response.json()
       
       if (data.success) {
-        const currentUserId = wsService.current.getUserId();
+        const currentUserId = getUserId();
         
         const formattedMessages = data.body.messages.map((msg: ChatHistoryMessage) => ({
           id: msg.id,
