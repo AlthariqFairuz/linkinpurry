@@ -105,12 +105,12 @@ const DetailProfileHeader = ({
           {/* Name and Connections */}
           <div className="space-y-1">
             <h2 className="text-2xl font-semibold">{fullName}</h2>
-            <button 
+            <p 
               onClick={() => navigate(`/profile/${id}/connections`)}
-              className="bg-transparent text-gray-600 text-sm no-underline hover:text-blue-600 hover:underline transition-colors"
+              className="bg-transparent text-gray-600 text-sm hover:text-blue-600 hover:underline transition-colors cursor-pointer"
             >
               {connections} connections
-            </button>
+            </p>
           </div>
 
           {/* Connection Button */}
