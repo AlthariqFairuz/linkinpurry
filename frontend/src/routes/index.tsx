@@ -10,6 +10,7 @@ import Network from '@/pages/Network';
 import Loading from '@/components/ui/loading';
 import ChatInterface from '@/pages/Chat';
 import DaftarKoneksi from '@/pages/DaftarKoneksi';
+import DetailPostPage from '@/pages/DetailPost';
 
 function PrivateRoute({ children }) {
   const { isAuthenticated, isLoading } = useAuthCheck();
@@ -78,6 +79,14 @@ export default function AppRoutes() {
             <Home />
           </PrivateRoute>
         } />
+
+        {/* Detail Post Route */}
+        <Route path="/feed/:postId" element={
+          <PrivateRoute>
+            <DetailPostPage />
+          </PrivateRoute>
+        } />
+
         <Route path="/network" element={
           <PrivateRoute>
             <Network />

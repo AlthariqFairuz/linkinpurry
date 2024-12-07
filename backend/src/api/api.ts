@@ -1364,6 +1364,57 @@ auth.get('/feed', async (c) => {
   }
 });
 
+auth.get('/feed/:postId', async (c: Context) => {
+  try {
+    const postId = parseInt(c.req.param('postId'))
+    const post = await prisma.feed.findUnique({
+      where: { 
+          id: postId 
+      },
+      include: {
+          user: {
+              select: {
+                  id: true,
+                  username: true,
+                  fullName: true,
+                  profilePhotoPath: true
+              }
+          }
+      }
+  });
+
+    if (!post) {
+      return c.json({ 
+          success: false, 
+          message: 'Post not found', 
+          body: null 
+      }, 404);
+    }
+
+    const serializedPost = {
+      ...post,
+      id: post.id.toString(),        
+      userId: post.userId.toString(), 
+      user: {
+          ...post.user,
+          id: post.user.id.toString() 
+      }
+  };
+
+    return c.json({
+      success: true,
+      message: "Feed data successfully fetched",
+      body: serializedPost
+    }, 200);
+  } catch(error) {
+    return c.json({ 
+      success: false, 
+      message: 'Failed to fetch feed: ' + error, 
+      body: null 
+    }, 500);
+  }
+})
+
 auth.post('/feed', async (c) => {
   try{
     const token = getCookie(c, "jwt");

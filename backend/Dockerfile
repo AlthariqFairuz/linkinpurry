@@ -5,7 +5,7 @@ WORKDIR /app/backend
 # Copy package files
 COPY package*.json ./
 
-COPY ./.env.example ./.env
+# COPY ./.env.example ./.env
 
 # Install dependencies
 RUN npm install
