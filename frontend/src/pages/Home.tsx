@@ -43,7 +43,7 @@ export default function Home() {
         }),
         credentials: 'include',
       });
-
+      
       const data = await response.json();
       
       if (data.success) {
@@ -54,6 +54,21 @@ export default function Home() {
           variant: "success",
         });
         setCreatePostText('');
+        
+        const kirimNotif = await fetch('http://localhost:3000/api/send-notif-post', {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json', 
+          },
+          body: JSON.stringify({
+            title: "Pengguna " + userData.fullName + " memiliki post baru.",
+            body: createPostText.slice(0, 50) + (createPostText.length > 50 ? "..." : "")
+          })
+        }) 
+        
+        const kirimNotifresp = await kirimNotif.json();
+        console.log(kirimNotifresp)
       } else {
         toast({
           title: "Error",
@@ -94,6 +109,54 @@ export default function Home() {
     };
 
     fetchUserData();
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker
+        .register('notifications/sw.js')
+        .then((registration) => {
+          console.log("Registration successful", registration);
+        })
+        .catch((error) => {
+          console.log("Service worker registration failed", error);
+        });
+    }
+  
+    if (Notification.permission === "default") {
+      const handleServiceWorker = async () => {
+        if ("serviceWorker" in navigator){
+          const register = await navigator.serviceWorker.register('notifications/sw.js'); 
+
+          const resVap = await fetch("http://localhost:3000/api/vapid-public");
+          const hasil1 = await resVap.json();
+
+          const subscription = await register.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: hasil1.public_key || "",
+          });
+
+          const res = await fetch("http://localhost:3000/api/subscribe", {
+            method: "POST",
+            credentials: 'include',
+            body: JSON.stringify(subscription),
+            headers: {
+              "content-type": "application/json",
+            },
+          });
+    
+          const hasil = await res.json();
+          console.log(hasil);
+        }
+      };
+  
+      Notification.requestPermission()
+        .then((permission) => {
+          if (permission === "granted") {
+            handleServiceWorker();
+          }
+        })
+        .catch((error) => {
+          console.error("Failed to request notification permission:", error);
+        });
+    }
   }, [navigate, toast]);
   
   return (

@@ -90,16 +90,16 @@ export const swaggerConfig: OpenAPI.Document = {
       Post: {
         type: 'object',
         properties: {
-          id: { type: 'string '},
-          userId: { type: 'string '},
-          content: { type: 'string '},
-          createdAt: { type: 'string '},
-          updatedAt: { type: 'string '},
+          id: { type: 'string'},
+          userId: { type: 'string'},
+          content: { type: 'string'},
+          createdAt: { type: 'string'},
+          updatedAt: { type: 'string'},
           user: {
             type: 'object',
             properties: {
-              fullName: { type: 'string '},
-              profilePhotoPath: { type: 'string '}
+              fullName: { type: 'string'},
+              profilePhotoPath: { type: 'string'}
             }
           }
         }
@@ -185,7 +185,8 @@ export const swaggerConfig: OpenAPI.Document = {
                             message: {type: 'string'}
                           }
                         }, {
-                          type: null
+                          type: 'object',
+                          nullable: true
                         } 
                       ]
                     }
@@ -991,6 +992,36 @@ export const swaggerConfig: OpenAPI.Document = {
           }
         }
       }
-    }
-  }
+    }, 
+    '/vapid-public-key': {
+      get: {
+        summary: 'Get VAPID Public Key',
+        responses: {
+          200: {
+            description: 'Successfully get VAPID Public key',
+          },
+        },
+      },
+    },
+    '/subscribe': {
+      post: {
+        summary: 'Save Push Subscription',
+        responses: { 
+          201: { 
+            description: 'Subscription saved' 
+          } 
+        },
+      },
+    },
+    '/send-notif-post': {
+      post: {
+        summary: 'Send Notification to a User',
+        responses: {
+          201: {
+            description: 'Notification sent' 
+          } 
+        },
+      },
+    },
+  },
 };

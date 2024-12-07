@@ -7,8 +7,18 @@ import { z } from 'zod';
 import { prisma } from '../db/connections.js';
 import { uploadToCloudinary } from '../utils/cloudinary.js';
 import type { JWTPayload } from '../types/JWTPayload.js';
+import webPush from 'web-push';
 
 const auth = new Hono();
+
+// buat vapid
+const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC || '';
+const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE || '';
+webPush.setVapidDetails(
+  'mailto:yuruyunaath@gmail.com',
+  VAPID_PUBLIC_KEY,
+  VAPID_PRIVATE_KEY
+);
 
 // Helper function to generate JWT with exactly 1 hour TTL
 const generateToken = (user: { id: bigint; email: string; username: string; fullName: string | null }) => {
@@ -1596,6 +1606,97 @@ auth.get('/network/recommendations', async (c: Context) => {
       message: 'Failed to get recommendations: ' + error, 
       body: null 
     }, 500);
+  }
+});
+
+auth.get('/vapid-public', async (c) => {
+  return c.json({public_key: VAPID_PUBLIC_KEY});
+})
+
+auth.post('/subscribe', async (c) => {
+  try {
+    const token = getCookie(c, "jwt");
+    if (!token) return c.json({ 
+      success: false, 
+      message: 'No token found', 
+      body: null 
+    }, 401);
+    const decoded = await verifyToken(token);
+    const subscription = await c.req.json();
+    await prisma.pushSubscription.upsert({
+      where: { endpoint: subscription.endpoint },
+      update: { keys: subscription.keys, userId: BigInt(decoded.userId)},
+      create: { endpoint: subscription.endpoint, keys: subscription.keys, userId: BigInt(decoded.userId)},
+    });
+    return c.json({status: 'success'}, 201);
+  } catch (error) {
+    console.error('Error subscribing:', error);
+    return c.json({ error: 'Invalid subscription' }, 400);
+  }
+});
+
+auth.post('/send-notif-post', async (c) => {
+  try {
+    const token = getCookie(c, "jwt");
+    if (!token) return c.json({ 
+      success: false, 
+      message: 'No token found', 
+      body: null 
+    }, 401);
+    const decoded = await verifyToken(token);
+    const isinya = await c.req.json();
+    const notifPayload = {
+      title: isinya.title,
+      body: isinya.body,
+      data: {
+        url: "https://dev.to/jahid6597/why-useeffect-is-running-twice-in-react-18c6"
+      }
+    }
+    const latestFeed = await prisma.feed.findMany({
+      where: {
+        userId: BigInt(decoded.userId),
+      }, orderBy: {
+        createdAt: 'desc',
+      }, take: 1, select: {
+        id: true,
+      }
+    })
+    const connectedUsers = await prisma.connection.findMany({
+      where: {
+        fromId: BigInt(decoded.userId),
+      }, select: {
+        toId: true,
+      }
+    });
+    const connectedUserIds = connectedUsers.map((con) => con.toId);
+    const subscriptions = await prisma.pushSubscription.findMany({
+      where: {
+        userId: {
+          in: connectedUserIds,
+        }
+      }
+    });
+    const sendNotif = subscriptions.map((subscription) => {
+      if (typeof subscription.keys === 'object' && subscription.keys !== null) {
+        console.log("halo halo")
+        const keys = subscription.keys as { auth: string; p256dh: string };
+        return webPush.sendNotification(
+          {
+            endpoint: subscription.endpoint,
+            keys: {
+              auth: keys.auth, 
+              p256dh: keys.p256dh 
+            }
+          },
+          JSON.stringify(notifPayload)
+        );
+      }
+    });
+    Promise.all(sendNotif);
+    return c.json({status: 'success'}, 200);
+  } catch (error) {
+    console.error('Error sending notification:', error);
+    return c.json({ error: 'Failed to send notification' }, 500);
   }
 });
 
