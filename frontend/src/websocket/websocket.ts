@@ -5,6 +5,7 @@ let userId: string | null = null;
 const SERVER_URL = 'http://localhost:3000';
 
 export async function initializeSocket(): Promise<Socket | null> {
+  
   try {
     const response = await fetch(`${SERVER_URL}/api/verify`, {
       credentials: 'include'

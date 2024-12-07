@@ -2,7 +2,6 @@ import { Server } from 'socket.io';
 import type { Server as HttpServer  } from 'http';
 import { prisma } from '../db/connections.js';
 import type { ChatMessage } from '../types/ChatMessage.js';
-import type { UserStatus } from '../types/UserStatus.js';
 
 
 export function initializeWebSocket(httpServer: HttpServer) {
@@ -29,7 +28,6 @@ export function initializeWebSocket(httpServer: HttpServer) {
   const typingTimeouts = new Map<string, NodeJS.Timeout>(); // NodeJS.Timeout intinya itu representasi dari built-in type yang merepresentasikan sebuah timeout object
 
   io.on('connection', (socket) => {
-    console.log('User connected:', socket.id);
 
     // Handle user joining
     socket.on('join', (userId: string) => {
@@ -39,8 +37,6 @@ export function initializeWebSocket(httpServer: HttpServer) {
 
         // Join user's own room for private messages
         socket.join(userId);
-
-        console.log(`User ${userId} joined with socket ${socket.id}`);
 
       } catch (error) {
         console.error('Error in join handler:', error);
@@ -204,7 +200,6 @@ export function initializeWebSocket(httpServer: HttpServer) {
             break;
           }
         }
-        console.log('User disconnected:', socket.id);
       } catch (error) {
         console.error('Error handling disconnect:', error);
       }

@@ -1461,5 +1461,142 @@ auth.delete('/feed/:post_id', async (c) => {
   }
 })
 
+auth.get('/network/recommendations', async (c: Context) => {
+  try {
+    const token = getCookie(c, 'jwt');
+    if (!token) return c.json({ 
+      success: false, 
+      message: 'No token found', 
+      body: null 
+    }, 401);
+    
+    const decoded = await verifyToken(token);
+    const userId = BigInt(decoded.userId);
+
+    // get direct connections (1st degree)
+    const firstDegreeConnections = await prisma.connection.findMany({
+      where: { fromId: userId },
+      select: { toId: true }
+    });
+    const firstDegreeIds = firstDegreeConnections.map(conn => conn.toId);
+
+    // get 2nd degree connections (users connected to 1st degree connections, exclude 1st degree and self)
+    const secondDegreeConnections = await prisma.connection.findMany({
+      where: {
+        fromId: { in: firstDegreeIds },
+        AND: {
+          toId: {
+            notIn: [...firstDegreeIds, userId], 
+          }
+        }
+      },
+      select: {
+        toId: true,
+        from: {
+          select: {
+            fullName: true
+          }
+        }
+      }
+    });
+    const secondDegreeIds = [...new Set(secondDegreeConnections.map(conn => conn.toId))];
+
+    // get 3rd degree connections (users connected to 2nd degree connections, exclude 1st, 2nd degree and self)
+    const thirdDegreeConnections = await prisma.connection.findMany({
+      where: {
+        fromId: { in: secondDegreeIds },
+        AND: {
+          toId: {
+            notIn: [...firstDegreeIds, ...secondDegreeIds, userId], 
+          }
+        }
+      },
+      select: {
+        toId: true
+      }
+    });
+    const thirdDegreeIds = [...new Set(thirdDegreeConnections.map(conn => conn.toId))];
+
+    // get user details for 2nd degree connections
+    const secondDegreeUsers = await prisma.user.findMany({
+      where: {
+        id: { in: secondDegreeIds }
+      },
+      select: {
+        id: true,
+        fullName: true,
+        username: true,
+        skills: true,
+        workHistory: true,
+        profilePhotoPath: true,
+      }
+    });
+
+    // get user details for 3rd degree connections
+    const thirdDegreeUsers = await prisma.user.findMany({
+      where: {
+        id: { in: thirdDegreeIds }
+      },
+      select: {
+        id: true,
+        fullName: true,
+        username: true,
+        skills: true,
+        workHistory: true,
+        profilePhotoPath: true,
+      }
+    });
+
+    // create mutual connection counts for 2nd degree
+    const secondDegreeWithMutuals = secondDegreeUsers.map(user => {
+      const mutualConnections = secondDegreeConnections.filter(conn => 
+        conn.toId === user.id
+      ).length;
+      return {
+        ...user,
+        id: user.id.toString(),
+        mutualConnections,
+        degree: 2
+      };
+    });
+
+    // add degree information to 3rd degree connections
+    const thirdDegreeWithDegree = thirdDegreeUsers.map(user => ({
+      ...user,
+      id: user.id.toString(),
+      mutualConnections: 0,
+      degree: 3
+    }));
+
+    // combine and sort recommendations
+    const recommendations = [
+      ...secondDegreeWithMutuals,
+      ...thirdDegreeWithDegree
+    ].sort((a, b) => {
+      // sort by degree (2nd before 3rd)
+      if (a.degree !== b.degree) {
+        return a.degree - b.degree;
+      }
+      // then by number of mutual connections (higher first)
+      return b.mutualConnections - a.mutualConnections;
+    });
+
+    return c.json({
+      success: true,
+      message: 'Connection recommendations retrieved successfully',
+      body: {
+        recommendations: recommendations.slice(0, 3) // limit to top 3 recommendations
+      }
+    }, 200);
+
+  } catch (error) {
+    console.error('Recommendations error:', error);
+    return c.json({ 
+      success: false, 
+      message: 'Failed to get recommendations: ' + error, 
+      body: null 
+    }, 500);
+  }
+});
 
 export default auth;

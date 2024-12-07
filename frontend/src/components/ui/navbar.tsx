@@ -55,7 +55,7 @@ export const Navbar = () => {
       } finally {
         setIsSearching(false);
       }
-    }, 1000)
+    }, 700)
   ).current;
 
   // Cleanup debounce on unmount

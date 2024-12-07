@@ -15,16 +15,16 @@ export const RightSidebar = () => {
   useEffect(() => {
     const fetchUnconnectedUsers = async () => {
       try {
-        const response = await fetch('http://localhost:3000/api/network/unconnected', {
+        const response = await fetch('http://localhost:3000/api/network/recommendations', {
           credentials: 'include'
         });
         const data = await response.json();
 
-        if (data.success && data.body.connection) {
-          setUnconnectedUsers(data.body.connection.slice(0, 3));
+        if (data.success && data.body.recommendations) {
+          setUnconnectedUsers(data.body.recommendations.slice(0, 3));
         }
       } catch (error) {
-        console.error('Failed to fetch unconnected users:', error);
+        console.error('Failed to fetch recommendations:', error);
       } finally {
         setIsLoading(false);
       }

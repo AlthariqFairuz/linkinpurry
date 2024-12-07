@@ -88,7 +88,7 @@ export default function Chat() {
 
         typingTimeoutRef.current = setTimeout(() => {
           setIsTyping(false)
-        }, 3000)
+        }, 750)
       }
     })
 
@@ -253,6 +253,8 @@ export default function Chat() {
       </div>
     </div>
   );
+
+  console.log(socket)
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 pb-32">
