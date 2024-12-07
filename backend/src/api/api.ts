@@ -379,28 +379,12 @@ auth.get('/profile/:id', async (c: Context) => {
       }
     } : null;
     
-    if (decodedUserId == userId) {
-      return c.json({
-        success: true,
-        message: 'Owner profile',
-        body: {
-          id: user.id.toString(),
-          email: user.email,
-          username: user.username,
-          fullName: user.fullName,
-          skills: user.skills,
-          workHistory: user.workHistory,
-          profilePhotoPath: user.profilePhotoPath,
-          connections: numberOfConnections,
-          latestPost: serializedPost
-        }
-      }, 200);
-    }
-
     return c.json({
       success: true,
       message: 'Public Profile',
       body: {
+        id: user.id.toString(),
+        username: user.username,
         fullName: user.fullName,
         skills: user.skills,
         workHistory: user.workHistory,

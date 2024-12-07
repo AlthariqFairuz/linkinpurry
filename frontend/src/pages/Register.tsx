@@ -35,12 +35,10 @@ export default function Register() {
           email,
           password,
           confirmPassword
-        }),
-        credentials: 'include',
+        })
       });
 
       const data = await response.json();
-      
       
       if (data.success) {
 

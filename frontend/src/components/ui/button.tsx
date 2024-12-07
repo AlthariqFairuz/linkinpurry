@@ -88,16 +88,6 @@ const buttonVariants = cva(
           "active:bg-[#e1e1e1]",
           "focus:outline-none focus:ring-2 focus:ring-[#0a66c2]/40",
         ].join(" "),
-        // link: [
-        //   "text-[#0a66c2] underline-offset-4 bg-transparent",
-        //   "hover:underline",
-        //   "active:text-[#00294e]",
-        //   // Add smooth underline animation
-        //   "relative after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-full",
-        //   "after:origin-bottom-right after:scale-x-0",
-        //   "hover:after:origin-bottom-left hover:after:scale-x-100",
-        //   "after:transition-transform after:duration-300",
-        // ].join(" "),
         iconLight: [
           "bg-white text-[#666666] border border-[#e1e1e1]",
           "hover:bg-[#f3f2ef] hover:border-[#0a66c2]/30",

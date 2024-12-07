@@ -89,13 +89,13 @@ export const RightSidebar = () => {
               </Avatar>
               <div className="flex-1">
                 <h3 
-                  className="truncate max-w-[200px] font-medium text-sm hover:text-[#0a66c2] hover:underline cursor-pointer text-left"
+                  className="truncate max-w-[200px] font-medium text-sm cursor-pointer text-left"
                   onClick={() => navigate(`/profile/${user.id}`)}
                 >
                   {user.fullName || 'LinkInPurry Member'}
                 </h3>
                 <p className="text-xs text-gray-500 line-clamp-2 text-left truncate max-w-[200px]">
-                  {user.workHistory || 'No work history available'}
+                  {user.username}
                 </p>
               </div>
             </div>

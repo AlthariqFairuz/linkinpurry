@@ -291,6 +291,7 @@ export const DetailProfile = () => {
             {/* Profile Header */}
             <DetailProfileHeader
               id={ id }
+              username={profileData.username}
               fullName={profileData.fullName}
               connections={profileData.connections}
               profilePhotoPath={profileData.profilePhotoPath}

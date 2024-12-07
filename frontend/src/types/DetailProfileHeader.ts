@@ -2,6 +2,7 @@ export type ConnectionStatusDetailProfile = 'unconnected' | 'pending-sent' | 'pe
 
 interface DetailProfileHeaderProps {
     id: string;
+    username: string;
     fullName: string;
     connections: number;
     profilePhotoPath: string;

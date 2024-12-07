@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 
 const DetailProfileHeader = ({ 
   id,
+  username,
   fullName, 
   connections, 
   profilePhotoPath,
@@ -105,6 +106,7 @@ const DetailProfileHeader = ({
           {/* Name and Connections */}
           <div className="space-y-1">
             <h2 className="text-2xl font-semibold">{fullName}</h2>
+            <p className="text-gray-600 text-sm">{username}</p>
             <p 
               onClick={() => navigate(`/profile/${id}/connections`)}
               className="bg-transparent text-gray-600 text-sm hover:text-blue-600 hover:underline transition-colors cursor-pointer"
