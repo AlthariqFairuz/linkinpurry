@@ -333,7 +333,7 @@ export default function Chat() {
         `}>
           {selectedContact ? (
             <>
-              <div className="p-4 border-b flex items-center gap-3">
+              <div className="p-4 border-b flex items-center gap-3 shadow-md">
                 <Button
                   variant="iconLight"
                   size="icon"
