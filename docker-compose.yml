@@ -24,7 +24,6 @@ services:
       - "3000:3000"
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
-      - REDIS_URL=redis://redis:6379
       - CHOKIDAR_USEPOLLING=true
     volumes:
       - ./backend:/app/backend

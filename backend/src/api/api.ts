@@ -128,6 +128,17 @@ const updateProfileSchema = z.object({
 });
 
 
+auth.get('/health', (c) => {
+  return c.json({
+    success: true,
+    message: 'OK',
+    body: {
+      status: 'healthy',
+      timestamp: new Date().toISOString()
+    }
+  }, 200);
+});
+
 // Add verify endpoint
 auth.get('/verify', async (c : Context) => {
   try {
