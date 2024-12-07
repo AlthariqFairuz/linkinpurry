@@ -1,4 +1,4 @@
-import { Hono } from 'hono';
+import { Hono, type Context } from 'hono';
 import { cors } from 'hono/cors';
 import { config } from 'dotenv';
 import auth from './api/api.js';
@@ -23,13 +23,25 @@ app.use('/*', cors(corsOptions));
 
 // Serve Swagger UI
 app.get('/swagger', swaggerUI({ url: '/docs' }));
-app.get('/docs', (c) => c.json(swaggerConfig));
+app.get('/docs', (c : Context) => c.json(swaggerConfig));
 
 // Mount auth routes
 app.route('/api', auth);
 
+app.get('/health', (c : Context) => {
+  return c.json({
+    success: true,
+    message: 'OK',
+    body: {
+      status: 'healthy',
+      timestamp: new Date().toISOString()
+    }
+  }, 200);
+});
+
+
 // Error handling middleware
-app.onError((err, c) => {
+app.onError((err, c : Context) => {
   console.error(`Error: ${err}`);
   return c.json({ 
     success: false, 
