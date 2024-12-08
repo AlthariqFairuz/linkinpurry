@@ -1676,8 +1676,8 @@ auth.post('/subscribe', async (c) => {
     const subscription = await c.req.json();
     await prisma.pushSubscription.upsert({
       where: { endpoint: subscription.endpoint },
-      update: { keys: subscription.keys, userId: BigInt(decoded.userId)},
-      create: { endpoint: subscription.endpoint, keys: subscription.keys, userId: BigInt(decoded.userId)},
+      update: { keys: subscription.keys, userId: BigInt(decoded.userId), createdAt: new Date()},
+      create: { endpoint: subscription.endpoint, keys: subscription.keys, userId: BigInt(decoded.userId), createdAt: new Date()},
     });
     return c.json({status: 'success'}, 201);
   } catch (error) {
@@ -1696,13 +1696,6 @@ auth.post('/send-notif-post', async (c) => {
     }, 401);
     const decoded = await verifyToken(token);
     const isinya = await c.req.json();
-    const notifPayload = {
-      title: isinya.title,
-      body: isinya.body,
-      data: {
-        url: "https://dev.to/jahid6597/why-useeffect-is-running-twice-in-react-18c6"
-      }
-    }
     const latestFeed = await prisma.feed.findMany({
       where: {
         userId: BigInt(decoded.userId),
@@ -1712,6 +1705,13 @@ auth.post('/send-notif-post', async (c) => {
         id: true,
       }
     })
+    const notifPayload = {
+      title: isinya.title,
+      body: isinya.body,
+      data: {
+        url: "http://localhost:5173/feed/" + latestFeed[0].id
+      }
+    }
     const connectedUsers = await prisma.connection.findMany({
       where: {
         fromId: BigInt(decoded.userId),
@@ -1725,25 +1725,31 @@ auth.post('/send-notif-post', async (c) => {
         userId: {
           in: connectedUserIds,
         }
-      }
+      }, 
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
-    const sendNotif = subscriptions.map((subscription) => {
+    for (const subscription of subscriptions) {
       if (typeof subscription.keys === 'object' && subscription.keys !== null) {
-        console.log("halo halo")
+        // console.log("halo halo")
         const keys = subscription.keys as { auth: string; p256dh: string };
-        return webPush.sendNotification(
-          {
-            endpoint: subscription.endpoint,
-            keys: {
-              auth: keys.auth, 
-              p256dh: keys.p256dh 
-            }
-          },
-          JSON.stringify(notifPayload)
-        );
+        try {
+          await webPush.sendNotification(
+            {
+              endpoint: subscription.endpoint,
+              keys: {
+                auth: keys.auth, 
+                p256dh: keys.p256dh 
+              }
+            },
+            JSON.stringify(notifPayload)
+          );
+        } catch(error) {
+          // console.log("errornya: " + error);
+        }
       }
-    });
-    Promise.all(sendNotif);
+    };
     return c.json({status: 'success'}, 200);
   } catch (error) {
     console.error('Error sending notification:', error);
