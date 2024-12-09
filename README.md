@@ -174,7 +174,7 @@ http://localhost:3000/swagger
 - Chat and Websocket : 13522027
 - Connections : 13522002, 13522027
 - Push Notifications : 13522044
-- 
+
 ### Server-side:
 - Login and Register : 13522027
 - Feed : 13522027, 13522044
