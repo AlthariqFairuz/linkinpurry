@@ -6,7 +6,8 @@
     "generate": "prisma generate",
     "dev": "npm run migrate && npm run generate && tsx watch --clear-screen=false src/index.ts",
     "build": "npm run migrate && npm run generate && tsc",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "dev-no-migrate": "npm run generate && tsx watch --clear-screen=false src/index.ts"
   },
   "dependencies": {
     "@hono/node-server": "^1.13.7",

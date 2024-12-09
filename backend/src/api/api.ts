@@ -42,7 +42,7 @@ const generateToken = (user: { id: bigint; email: string; username: string; full
 
 // Helper function to set cookie with 1 hour TTL
 const setTokenCookie = (c: Context, token: string) => {
-  setCookie(c, 'jwt', token, {
+  setCookie(c, 'token', token, {
     httpOnly: true,
     secure: true, 
     sameSite: 'lax',
@@ -53,7 +53,7 @@ const setTokenCookie = (c: Context, token: string) => {
 
 // Helper function to clear JWT cookie
 const removeTokenCookie = (c: Context) => {
-  setCookie(c, 'jwt', '', {
+  setCookie(c, 'token', '', {
     httpOnly: true,
     secure: true,
     sameSite: 'lax',
@@ -140,7 +140,7 @@ const updateProfileSchema = z.object({
 // Add verify endpoint
 auth.get('/verify', async (c : Context) => {
   try {
-    const token = getCookie(c, 'jwt');
+    const token = getCookie(c, 'token');
     
     if (!token) {
       return c.json({ success: false, 
@@ -252,7 +252,7 @@ auth.post('/register', async (c : Context) => {
    } catch (error) {
      return c.json({ 
        success: false, 
-       message: 'Registration failed', 
+       message: 'Registration failed ' + error, 
        body: null 
      }, 500);
    }
@@ -260,19 +260,23 @@ auth.post('/register', async (c : Context) => {
 
  auth.post('/login', async (c : Context) => {
   try {
-    const { email, password } = await c.req.json();
+    const { identifier, password } = await c.req.json();
 
     // Validate input
-    if (!email || !password) {
+    if (!identifier || !password) {
       return c.json({ 
         success: false, 
-        message: 'Email and password are required',
+        message: 'Identifier and Password are required',
         body: null 
       }, 400);
     }
 
-    const user = await prisma.user.findUnique({ 
-      where: { email }
+    const user = await prisma.user.findFirst({ 
+      where: {
+      OR: [{ email: identifier },
+        { username: identifier }
+      ]
+    }
     });
 
     if (!user) {
@@ -334,7 +338,7 @@ auth.get('/profile/:id', async (c: Context) => {
       }
     });
 
-    const token = getCookie(c, 'jwt');
+    const token = getCookie(c, 'token');
 
     // public access (no token)
     if (!token) {
@@ -433,7 +437,7 @@ auth.get('/profile/:id', async (c: Context) => {
 
 auth.put('/profile/:id', async (c: Context) => {
   try {
-    const token = getCookie(c, 'jwt');
+    const token = getCookie(c, 'token');
     if (!token) {
       return c.json({ 
         success: false, 
@@ -635,7 +639,7 @@ auth.get('/connection-status/:id', async (c : Context) => {
   try {
     const toId = BigInt(c.req.param('id'));
 
-    const token = getCookie(c, 'jwt');
+    const token = getCookie(c, 'token');
 
     if (!token) {
       return c.json({ 
@@ -706,7 +710,7 @@ auth.get('/connection-status/:id', async (c : Context) => {
 auth.get('/network/all-users', async (c : Context) => {
   try {
 
-    const token = getCookie(c, 'jwt');
+    const token = getCookie(c, 'token');
     if (!token) return c.json({ 
       success: false, 
       message: 'No token found', 
@@ -758,7 +762,7 @@ auth.get('/network/all-users', async (c : Context) => {
 
 auth.get('/network/unconnected', async (c : Context) => {
   try {
-    const token = getCookie(c, 'jwt');
+    const token = getCookie(c, 'token');
     if (!token) return c.json({ 
       success: false, 
       message: 'No token found', 
@@ -825,7 +829,7 @@ const users = await prisma.user.findMany({
 
 auth.get('/network/requested', async (c : Context) => {
   try {
-    const token = getCookie(c, 'jwt');
+    const token = getCookie(c, 'token');
     if (!token) return c.json({ 
       success: false, 
       message: 'No token found', 
@@ -893,7 +897,7 @@ auth.get('/network/requested', async (c : Context) => {
 
 auth.get('/network/incoming-requests', async (c : Context) => { 
   try {
-    const token = getCookie(c, 'jwt');
+    const token = getCookie(c, 'token');
     if (!token) return c.json({ 
       success: false, 
       message: 'No token found', 
@@ -949,7 +953,7 @@ auth.get('/network/incoming-requests', async (c : Context) => {
 
 auth.get('/network/connected', async (c : Context) => {
   try {
-    const token = getCookie(c, 'jwt');
+    const token = getCookie(c, 'token');
 
     if (!token) return c.json({ 
       success: false, 
@@ -1007,7 +1011,7 @@ auth.get('/network/connected', async (c : Context) => {
 
 auth.post('/request/:id', async (c : Context) => {
   try {
-    const token = getCookie(c, 'jwt');
+    const token = getCookie(c, 'token');
     if (!token) return c.json({ 
       success: false, 
       message: 'No token found', 
@@ -1089,7 +1093,7 @@ auth.post('/request/:id', async (c : Context) => {
 
 auth.post('/accept-request/:id', async (c) => {
   try {
-    const token = getCookie(c, 'jwt');
+    const token = getCookie(c, 'token');
     if (!token) return c.json({ 
       success: false, 
       message: 'No token found', 
@@ -1149,7 +1153,7 @@ auth.post('/accept-request/:id', async (c) => {
 // Decline connection request
 auth.post('/decline-request/:id', async (c : Context) => {
   try {
-    const token = getCookie(c, 'jwt');
+    const token = getCookie(c, 'token');
     if (!token) return c.json({ 
       success: false, 
       message: 'No token found', 
@@ -1182,7 +1186,7 @@ auth.post('/decline-request/:id', async (c : Context) => {
 
 auth.post('/disconnect/:id', async (c : Context) => {
   try {
-    const token = getCookie(c, 'jwt');
+    const token = getCookie(c, 'token');
     if (!token) {
       return c.json({ 
         success: false, 
@@ -1253,7 +1257,7 @@ auth.post('/disconnect/:id', async (c : Context) => {
 auth.get('/chat/history/:userId', async (c : Context) => {
   try {
     const userId = BigInt(c.req.param('userId'));
-    const token = getCookie(c, 'jwt');
+    const token = getCookie(c, 'token');
     
     if (!token) {
       return c.json({ 
@@ -1302,7 +1306,7 @@ auth.get('/chat/history/:userId', async (c : Context) => {
 
 auth.get('/feed', async (c) => {
   try {
-    const token = getCookie(c, "jwt");
+    const token = getCookie(c, "token");
     if (!token) return c.json({ 
       success: false, 
       message: 'No token found', 
@@ -1363,14 +1367,17 @@ auth.get('/feed', async (c) => {
       updatedAt: post.updatedAt.toISOString(),
       user: {
         fullName: post.user.fullName,
-        profilePhotoPath: post.user.profilePhotoPath
+        profilePhotoPath: post.user.profilePhotoPath,
       }
     }));
     
     return c.json({
       success: true,
       message: "Feed data successfully fetched",
-      body: serializedPosts
+      body: {
+        posts: serializedPosts,
+        cursor: posts.length > 0 ? posts[posts.length - 1].id.toString() : null
+      }
     }, 200);
 
   } catch(error) {
@@ -1435,7 +1442,7 @@ auth.get('/feed/:postId', async (c: Context) => {
 
 auth.post('/feed', async (c) => {
   try{
-    const token = getCookie(c, "jwt");
+    const token = getCookie(c, "token");
     if (!token) return c.json({ 
       success: false, 
       message: 'No token found', 
@@ -1469,7 +1476,7 @@ auth.post('/feed', async (c) => {
 
 auth.put('/feed/:post_id', async (c) => {
   try{
-    const token = getCookie(c, "jwt");
+    const token = getCookie(c, "token");
 
     if (!token) return c.json({ 
       success: false, 
@@ -1508,7 +1515,7 @@ auth.put('/feed/:post_id', async (c) => {
 
 auth.delete('/feed/:post_id', async (c) => {
   try{
-    const token = getCookie(c, "jwt");
+    const token = getCookie(c, "token");
 
     if (!token) return c.json({ 
       success: false, 
@@ -1542,7 +1549,7 @@ auth.delete('/feed/:post_id', async (c) => {
 
 auth.get('/network/recommendations', async (c: Context) => {
   try {
-    const token = getCookie(c, 'jwt');
+    const token = getCookie(c, 'token');
     if (!token) return c.json({ 
       success: false, 
       message: 'No token found', 
@@ -1684,7 +1691,7 @@ auth.get('/vapid-public', async (c) => {
 
 auth.post('/subscribe', async (c) => {
   try {
-    const token = getCookie(c, "jwt");
+    const token = getCookie(c, "token");
     if (!token) return c.json({ 
       success: false, 
       message: 'No token found', 
@@ -1706,7 +1713,7 @@ auth.post('/subscribe', async (c) => {
 
 auth.post('/send-notif-post', async (c) => {
   try {
-    const token = getCookie(c, "jwt");
+    const token = getCookie(c, "token");
     if (!token) return c.json({ 
       success: false, 
       message: 'No token found', 

@@ -863,7 +863,6 @@ export const swaggerConfig: OpenAPI.Document = {
           {
             name: 'cursor',
             in: 'query',
-            required: true,
             schema: {
               type: 'integer'
             }

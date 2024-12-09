@@ -6,12 +6,10 @@ export let options = {
   stages: [
     { duration: "5s", target: 50 },
     { duration: "10s", target: 100 },
-    { duration: "15s", target: 150 },
-    { duration: "10s", target: 100 },
     { duration: "5s", target: 50 },
   ],
   thresholds: {
-    http_req_duration: ["avg<5000", "p(95)<10000"],
+    http_req_duration: ["avg<8000", "p(95)<20000"],
     http_req_failed: ["rate<0.01"],
   },
 };

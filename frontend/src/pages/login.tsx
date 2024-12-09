@@ -7,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Navbar } from '@/components/ui/navbar';
 
 export default function Login() {
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -19,7 +19,7 @@ export default function Login() {
       const response = await fetch('http://localhost:3000/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ identifier, password }),
         credentials: 'include', 
       });
       
@@ -33,7 +33,7 @@ export default function Login() {
         });
 
         // Reset form
-        setEmail('');
+        setIdentifier('');
         setPassword('');
         
         // Navigate to home
@@ -75,16 +75,15 @@ export default function Login() {
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <label htmlFor="email" className="text-sm font-medium text-gray-700">
+                  <label className="text-sm font-medium text-gray-700">
                     Email
                   </label>
                   <Input
                     id="email"
-                    type="email"
                     required
                     className="w-full"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    value={identifier}
+                    onChange={(e) => setIdentifier(e.target.value)}
                   />
                 </div>
 

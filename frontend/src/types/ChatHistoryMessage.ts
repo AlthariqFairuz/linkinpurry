@@ -4,6 +4,4 @@ export interface ChatHistoryMessage {
   toId: string;
   message: string;
   timestamp: string;
-  read: boolean;
-  readAt: string | null;
 }

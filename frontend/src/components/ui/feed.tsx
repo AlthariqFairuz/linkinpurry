@@ -54,27 +54,16 @@ export function Feed({ currentUser }: {currentUser: User | null}) {
       const data = await response.json();
       
       if (data.success) {
-        console.log('Received posts:', {
-          newPosts: data.body.length,
-          firstId: data.body[0]?.id,
-          lastId: data.body[data.body.length - 1]?.id
-        });
-
         setPosts(prevPosts => {
           const newPosts = cursor 
-            ? [...prevPosts, ...data.body]
-            : data.body;
-          
-          console.log('Posts state updated:', {
-            previousCount: prevPosts.length,
-            newCount: newPosts.length
-          });
-          
+            ? [...prevPosts, ...data.body.posts]
+            : data.body.posts;
           return newPosts;
         });
         
-        setHasMore(data.body.length === LIMIT);
-      } else {
+        setHasMore(data.body.posts.length === LIMIT);
+      }
+       else {
         throw new Error(data.message);
       }
     } catch (error) {

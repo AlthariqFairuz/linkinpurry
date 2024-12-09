@@ -17,10 +17,10 @@ import { ChatHistoryMessage } from "@/types/ChatHistoryMessage"
 import { MessageData } from "@/types/MessageData"
 import { UserData } from "@/types/UserData"
 import { useSearchParams } from "react-router-dom"
+import { ApiResponse } from "@/types/User"
 
 export default function ChatInterface() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const id = searchParams.get("id");
   const [message, setMessage] = useState("")
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [contacts, setContacts] = useState<ChatContact[]>([])
@@ -32,12 +32,14 @@ export default function ChatInterface() {
   const [socket, setSocket] = useState<Socket | null>(null)
   const typingTimeoutRef = useRef<NodeJS.Timeout>()
 
+  const id = searchParams.get("id");
+
   const fetchHistory = async (userId: string) => {
     try {
       const response1 = await fetch(`http://localhost:3000/api/profile/${userId}`, {
         credentials: 'include'
       });
-      const data1 = await response1.json();
+      const data1 : ApiResponse = await response1.json();
       if (!data1.success) {
         throw new Error(data1.message);
       }

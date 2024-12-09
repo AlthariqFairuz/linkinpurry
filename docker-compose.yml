@@ -19,7 +19,7 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     ports:
       - "3000:3000"
     environment:
@@ -48,7 +48,7 @@ services:
     command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
     
   postgres:
-    image: postgres:16-alpine 
+    image: postgres:16-alpine
     ports:
       - "5433:5432" 
     volumes:
