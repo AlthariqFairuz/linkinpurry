@@ -103,6 +103,19 @@ export const swaggerConfig: OpenAPI.Document = {
             }
           }
         }
+      },
+      PushSubscription: {
+        type: 'object',
+        properties: {
+          endpoint: { type: 'string'},
+          keys: {
+            type: 'array',
+            items: { 
+              type: 'object',
+              additionalProperties: { type: 'string' } 
+            }
+          }
+        }
       }
     }
   },
@@ -372,6 +385,60 @@ export const swaggerConfig: OpenAPI.Document = {
         }
       }
     },
+    '/api/connections/{userId}': {
+      get: {
+        tags: ['Profile'],
+        summary: 'Get list of connections',
+        parameters: [
+          {
+            name: 'userId',
+            in: 'path',
+            required: true,
+            schema: {
+              type: 'string'
+            }
+          }
+        ],
+        responses: {
+          '200': {
+            description: 'List of connections retrieved successfully',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: { type: 'boolean' },
+                    message: { type: 'string' },
+                    body: {
+                      type: 'object',
+                      properties: {
+                        connections: {
+                          type: 'array',
+                          items: {
+                            type: 'object',
+                            properties: {
+                              id: {type: 'string'},
+                              fullName: { type: 'string' },
+                              username: { type: 'string' },
+                              skills: { type: 'string' },
+                              workHistory: { type: 'string' },
+                              profilePhotoPath: { type: 'string' }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          '500': {
+            description: 'Failed to retrieve connections'
+          }
+        }
+      }
+    },
     '/api/users/search': {
       get: {
         tags: ['Users'],
@@ -398,10 +465,18 @@ export const swaggerConfig: OpenAPI.Document = {
                     body: {
                       type: 'object',
                       properties: {
-                        id: {type: 'string' },
-                        username: { type: 'string' },
-                        fullName: { type: 'string' },
-                        profilePhotoPath: { type: 'string' }
+                        users: {
+                          type: 'array',
+                          items: {
+                            type: 'object',
+                            properties: {
+                              id: {type: 'string' },
+                              username: { type: 'string' },
+                              fullName: { type: 'string' },
+                              profilePhotoPath: { type: 'string' }
+                            }
+                          }
+                        }
                       }
                     }
                   }
@@ -435,6 +510,23 @@ export const swaggerConfig: OpenAPI.Document = {
         responses: {
           '200': {
             description: 'Successful operation',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: { type: 'boolean' },
+                    message: { type: 'string' },
+                    body: {
+                      type: 'object',
+                      properties: {
+                        connected: {type: 'boolean'}
+                      }
+                    }
+                  }
+                }
+              }
+            }
           },
           '401': {
             description: 'Failed operation'
@@ -844,10 +936,10 @@ export const swaggerConfig: OpenAPI.Document = {
         }
       }
     },
-    '/api/feed': {
+    '/api/feed/': {
       get: {
         tags: ['Feed'],
-        summary: 'Get posts',
+        summary: 'Get feed',
         security: [
           { cookieAuth: [] }
         ],
@@ -926,6 +1018,47 @@ export const swaggerConfig: OpenAPI.Document = {
           }
         }
       },
+    },
+    '/api/feed/{post_id}': {
+      get: {
+        tags: ['Feed'],
+        summary: 'Get post detail',
+        parameters: [
+          {
+            name: 'post_id',
+            in: 'path',
+            required: true,
+            schema: {
+              type: 'integer'
+            }
+          }
+        ],
+        responses: {
+          '200': {
+            description: '"Feed data successfully fetched',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: { type: 'boolean' },
+                    message: { type: 'string' },
+                    body: {
+                      $ref: '#/components/schemas/Post'
+                    }
+                  }
+                }
+              }
+            }
+          },
+          '404': {
+            description: 'Post not found'
+          },
+          '500': {
+            description: 'Failed to fetch feed'
+          }
+        }
+      },
       put: {
         tags: ['Feed'],
         summary: 'Edit post',
@@ -993,8 +1126,61 @@ export const swaggerConfig: OpenAPI.Document = {
         }
       }
     }, 
+    '/api/network/recommendations': {
+      get: {
+        tags: ['Network'],
+        summary: 'Get network recommendations',
+        security: [
+          { cookieAuth: [] }
+        ],
+        responses: {
+          '200': {
+            description: 'Connection recommendations retrieved successfully',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: { type: 'boolean' },
+                    message: { type: 'string' },
+                    body: {
+                      type: 'object',
+                      properties: {
+                        recommendations: {
+                          type: 'array',
+                          items: {
+                            type: 'object',
+                            properties: {
+                              id: { type: 'string' },
+                              username: { type: 'string' },
+                              fullName: { type: 'string' },
+                              skills: { type: 'string' },
+                              workHistory: { type: 'string' },
+                              profilePhotoPath: { type: 'string' },
+                              mutualConnections: {type: 'integer'},
+                              degree: {type: 'integer'}
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          '401': {
+            description: 'No token found'
+          },
+          '500': {
+            description: 'Failed to get recommendations'
+          }
+        }
+      },
+    },
     '/vapid-public-key': {
       get: {
+        tags: ['Notification'],
         summary: 'Get VAPID Public Key',
         responses: {
           200: {
@@ -1005,23 +1191,93 @@ export const swaggerConfig: OpenAPI.Document = {
     },
     '/subscribe': {
       post: {
+        tags: ['Notification'],
         summary: 'Save Push Subscription',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/PushSubscription'
+              }
+            }
+          }
+        },
         responses: { 
           201: { 
             description: 'Subscription saved' 
-          } 
+          },
+          400: {
+            description: 'Invalid subscription' 
+          },
+          401: {
+            description: 'No token found' 
+          },
         },
       },
     },
     '/send-notif-post': {
       post: {
-        summary: 'Send Notification to a User',
+        tags: ['Notification'],
+        summary: 'Send notification regarding a new Post',
+        security: [
+          { cookieAuth: [] }
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  title: { type: 'string' },
+                  body: { type: 'string' }
+                }
+              }
+            }
+          }
+        },
         responses: {
-          201: {
+          200: {
             description: 'Notification sent' 
-          } 
+          },
+          401: {
+            description: 'No token found' 
+          },
+          500: {
+            description: 'Failed to send notification' 
+          }
         },
       },
     },
+    '/send-notif-chat': {
+      post: {
+        tags: ['Chat'],
+        summary: 'Send Message to a User',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  message: { type: 'string' },
+                  toId: { type: 'string' },
+                  userId: { type: 'string' }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: 'Notification sent' 
+          },
+          500: {
+            description: 'Failed to send notification' 
+          }
+        },
+      },
+    }
   },
 };
