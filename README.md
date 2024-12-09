@@ -97,13 +97,11 @@ POSTGRES_HOST=postgres
 DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:5432/${POSTGRES_DB}
 REDIS_URL=redis://redis:6379
 JWT_SECRET=kocakgeming123 
-DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
-REDIS_URL=redis://redis:6379
 CLOUDINARY_CLOUD_NAME= your_api_key
 CLOUDINARY_API_KEY= your_api_key
 CLOUDINARY_API_SECRET= your_api_key
-VAPID_PUBLIC_KEY= your_api_key
-VAPID_PRIVATE_KEY= your_api_key
+VAPID_PUBLIC= your_api_key
+VAPID_PRIVATE= your_api_key
 ```
 
 Root (.env):
@@ -115,8 +113,6 @@ POSTGRES_HOST=postgres
 DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:5432/${POSTGRES_DB}
 REDIS_URL=redis://redis:6379
 JWT_SECRET=kocakgeming123 
-VAPID_PUBLIC= your_api_key
-VAPID_PRIVATE= your_api_key
 ```
 
 3. Install dependencies:
