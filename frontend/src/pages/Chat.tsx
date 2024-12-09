@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
-import { ArrowLeft,Search, Send } from "lucide-react"
+import { ArrowLeft, Search, Send } from "lucide-react"
 import { ChatContact } from "@/types/ChatContact"
 import { ChatMessage } from "@/types/ChatMessage"
 import { Navbar } from "@/components/ui/navbar"
@@ -16,8 +16,11 @@ import { Socket } from "socket.io-client"
 import { ChatHistoryMessage } from "@/types/ChatHistoryMessage"
 import { MessageData } from "@/types/MessageData"
 import { UserData } from "@/types/UserData"
+import { useSearchParams } from "react-router-dom"
 
-export default function Chat() {
+export default function ChatInterface() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const id = searchParams.get("id");
   const [message, setMessage] = useState("")
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [contacts, setContacts] = useState<ChatContact[]>([])
@@ -29,32 +32,58 @@ export default function Chat() {
   const [socket, setSocket] = useState<Socket | null>(null)
   const typingTimeoutRef = useRef<NodeJS.Timeout>()
 
-  const scrollToBottom = useCallback(() => {
-    if (scrollRef.current) {
-      setTimeout(() => {
-        const scrollElement = scrollRef.current;
-        if (scrollElement) {
-          scrollElement.scrollTo({
-            top: scrollElement.scrollHeight,
-            behavior: 'smooth'
-          });
-        }
-      }, 100);
+  const fetchHistory = async (userId: string) => {
+    try {
+      const response1 = await fetch(`http://localhost:3000/api/profile/${userId}`, {
+        credentials: 'include'
+      });
+      const data1 = await response1.json();
+      if (!data1.success) {
+        throw new Error(data1.message);
+      }
+
+      const fullname = data1.body.fullName;
+      const response = await fetch(`http://localhost:3000/api/chat/history/${userId}`, {
+        credentials: 'include'
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        const currentUserId = getUserId();
+        
+        const formattedMessages = data.body.messages.map((msg: ChatHistoryMessage) => ({
+          id: msg.id,
+          fromId: msg.fromId,
+          toId: msg.toId,
+          sender: msg.fromId === currentUserId ? 'Me' : fullname,
+          content: msg.message,
+          timestamp: new Date(msg.timestamp).toLocaleTimeString(),
+          isMe: msg.fromId === currentUserId, 
+        }));
+        
+        setMessages(formattedMessages);
+        setSelectedContact({
+          id: parseInt(userId),
+          name: fullname,
+          avatar: data1.body.profilePhotoPath,
+          lastMessage: formattedMessages.length > 0 ? formattedMessages[formattedMessages.length - 1].content : '',
+          unread: 0
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load chat history: " + error,
+        variant: "destructive"
+      });
     }
-  }, []);
+  };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, scrollToBottom]);
-
-  // Setup socket listeners as a callback to prevent recreation
   const setupSocketListeners = useCallback((socket: Socket) => {
-    
     socket.on('receive_message', (data: MessageData) => {
       const currentUserId = getUserId();
       
       if (selectedContact && (
-        // validasi message dari contact ke user atau dari user ke contact
         (data.fromId === selectedContact.id.toString() && data.toId === currentUserId) ||
         (data.fromId === currentUserId && data.toId === selectedContact.id.toString())
       )) {
@@ -75,7 +104,6 @@ export default function Chat() {
           return {
             ...contact,
             lastMessage: data.message,
-            // increment unread only if message is from other user and not in current chat
             unread: (data.fromId === contact.id.toString() && 
                      (!selectedContact || selectedContact.id.toString() !== contact.id.toString()))
               ? (contact.unread || 0) + 1 
@@ -84,7 +112,7 @@ export default function Chat() {
         }
         return contact
       }))
-    })
+    });
 
     socket.on('user_typing', ({ userId }: { userId: string }) => {
       if (selectedContact?.id.toString() === userId) {
@@ -97,16 +125,15 @@ export default function Chat() {
           setIsTyping(false)
         }, 750)
       }
-    })
+    });
 
     socket.on('user_stopped_typing', ({ userId }: { userId: string }) => {
       if (selectedContact?.id.toString() === userId) {
         setIsTyping(false)
       }
-    })
-  }, [selectedContact])
+    });
+  }, [selectedContact]);
 
-  // Initialize WebSocket and load contacts
   useEffect(() => {
     let currentSocket: Socket | null = null;
 
@@ -127,7 +154,13 @@ export default function Chat() {
         currentSocket.disconnect()
       }
     }
-  }, [setupSocketListeners])  
+  }, [setupSocketListeners]);
+
+  useEffect(() => {
+    if (id) {
+      fetchHistory(id);
+    }
+  }, [id]);
 
   const loadContacts = async () => {
     try {
@@ -152,8 +185,6 @@ export default function Chat() {
               avatar: user.profilePhotoPath,
               lastMessage: lastMessage?.message || "",
               unread: 0,
-              online: false,
-              lastActive: null
             };
           })
         );
@@ -168,9 +199,8 @@ export default function Chat() {
     }
   }
 
-  // Handle sending messages
   const handleSendMessage = () => {
-    if (!message.trim() || !socket || !selectedContact) return
+    if (!message.trim() || !socket || !selectedContact) return;
 
     const messageData = {
       toId: selectedContact.id.toString(),
@@ -192,27 +222,22 @@ export default function Chat() {
     setMessage('')
   }
 
-  // Handle typing indicator with debounce
   const handleMessageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setMessage(e.target.value)
     
-    if (!socket || !selectedContact) return
+    if (!socket || !selectedContact) return;
 
     emitTypingStart(selectedContact.id.toString())
     
-    // Debounce typing end
     setTimeout(() => {
       emitTypingEnd(selectedContact.id.toString())
     }, 1000)
   }
 
-  // Handle contact selection and load chat history
   const handleContactSelect = async (contact: ChatContact) => {
     setSelectedContact(contact)
     setShowMobileChat(true)
-    
-    // Update the URL to include the selected user's ID
-    window.history.pushState({}, '', `/chat/${contact.id}`)
+    setSearchParams({ id: contact.id.toString() });
   
     try {
       const response = await fetch(
@@ -235,7 +260,6 @@ export default function Chat() {
         }))
         setMessages(formattedMessages)
   
-        // Reset unread count
         setContacts(prev => prev.map(c => 
           c.id === contact.id ? { ...c, unread: 0 } : c
         ))
@@ -261,22 +285,17 @@ export default function Chat() {
     </div>
   );
 
-  console.log(socket)
-
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 pb-32">
-      {/* Navbar - Hidden on mobile when in chat view */}
       <div className={showMobileChat ? "hidden md:block" : "block"}>
         <Navbar />
       </div>
 
-      {/* Main Content */}
       <main className={`
         flex-1 flex flex-col md:flex-row
         px-0 md:px-4 pb-16 md:pb-20
         ${showMobileChat ? "pt-0 md:pt-20" : "pt-16 md:pt-20"}
       `}>
-        {/* Contact List */}
         <Card className={`
           md:w-80 border-0 md:border rounded-none md:rounded-lg
           h-[calc(100vh-4rem)] md:h-[calc(100vh-8rem)]
@@ -333,7 +352,6 @@ export default function Chat() {
           </ScrollArea>
         </Card>
 
-        {/* Chat Area */}
         <Card className={`
           flex-1 flex flex-col md:ml-4
           border-0 md:border rounded-none md:rounded-lg
@@ -411,7 +429,6 @@ export default function Chat() {
         </Card>
       </main>
 
-      {/* Footer - Hidden on mobile when in chat view */}
       <div className={showMobileChat ? "hidden md:block" : "block"}>
         <Footer />
       </div>
