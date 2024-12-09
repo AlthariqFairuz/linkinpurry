@@ -43,7 +43,6 @@ LinkInPurry is a professional social networking platform agents. It enables secu
 - Notification click handling and navigation
 
 ### Technical Features
-- Redis caching for improved performance
 - Responsive design for various screen sizes
 - Docker containerization
 - Stress testing and load testing capabilities
