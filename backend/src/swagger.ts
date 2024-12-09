@@ -250,7 +250,7 @@ export const swaggerConfig: OpenAPI.Document = {
             }
           },
           '400': {
-            description: 'Email and password are required'
+            description: 'Identifier and Password are required'
           },
           '401': {
             description: 'Invalid credentials'
@@ -971,9 +971,15 @@ export const swaggerConfig: OpenAPI.Document = {
                     success: { type: 'boolean' },
                     message: { type: 'string' },
                     body: {
-                      type: 'array',
-                      items: {
-                        $ref: '#/components/schemas/Post'
+                      type: 'object',
+                      properties: {
+                        posts: {
+                          type: 'array',
+                          items: {
+                            $ref: '#/components/schemas/Post'
+                          }
+                        },
+                        cursor: { type: 'string' }
                       }
                     }
                   }
