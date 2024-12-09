@@ -31,13 +31,21 @@ export default function Chat() {
 
   const scrollToBottom = useCallback(() => {
     if (scrollRef.current) {
-      const scrollElement = scrollRef.current;
-      scrollElement.scrollTo({
-        top: scrollElement.scrollHeight,
-        behavior: 'smooth'
-      });
+      setTimeout(() => {
+        const scrollElement = scrollRef.current;
+        if (scrollElement) {
+          scrollElement.scrollTo({
+            top: scrollElement.scrollHeight,
+            behavior: 'smooth'
+          });
+        }
+      }, 100);
     }
   }, []);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, scrollToBottom]);
 
   // Setup socket listeners as a callback to prevent recreation
   const setupSocketListeners = useCallback((socket: Socket) => {
@@ -61,7 +69,6 @@ export default function Chat() {
         }
         
         setMessages(prev => [...prev, newMessage]);
-        scrollToBottom();
       }
       setContacts(prev => prev.map(contact => {
         if (contact.id.toString() === data.fromId || contact.id.toString() === data.toId) {
@@ -97,7 +104,7 @@ export default function Chat() {
         setIsTyping(false)
       }
     })
-  }, [selectedContact, scrollToBottom])
+  }, [selectedContact])
 
   // Initialize WebSocket and load contacts
   useEffect(() => {

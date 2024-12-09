@@ -387,6 +387,24 @@ auth.get('/profile/:id', async (c: Context) => {
         profilePhotoPath: latestPost.user.profilePhotoPath
       }
     } : null;
+
+    if (decodedUserId === userId) {
+      return c.json({
+        success: true,
+        message: 'Self Profile',
+        body: {
+          id: user.id.toString(),
+          username: user.username,
+          fullName: user.fullName,
+          email: user.email,
+          skills: user.skills,
+          workHistory: user.workHistory,
+          profilePhotoPath: user.profilePhotoPath,
+          connections: numberOfConnections,
+          latestPost: serializedPost
+        }
+      }, 200);
+    }
     
     return c.json({
       success: true,
