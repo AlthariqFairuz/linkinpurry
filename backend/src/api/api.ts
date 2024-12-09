@@ -1795,7 +1795,7 @@ auth.post('/send-notif-chat', async(c) =>{
       title: uname[0].username,
       body: isinya.message,
       data: {
-        url: "http://localhost:5173/chat/" + isinya.userId
+        url: "http://localhost:5173/chat?id=" + isinya.userId
       }
     }
     const subscriptions = await prisma.pushSubscription.findMany({
