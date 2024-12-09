@@ -94,6 +94,20 @@ export function initializeWebSocket(httpServer: HttpServer) {
         
         // Emit back to sender for confirmation
         socket.emit('message_sent', messagePayload);
+        
+        const sendNotifnya = await fetch("http://localhost:3000/api/send-notif-chat", {
+          method: "POST",
+          headers: {
+            'Content-Type': 'application/json', 
+          },
+          body: JSON.stringify({
+            message: trimmedMessage.slice(0,50) + (trimmedMessage.length > 50 ? "..." : ""),
+            toId : data.toId,
+            userId : fromId
+          })
+        })
+        const halo = await sendNotifnya.json();
+        console.log(halo)
     
       } catch (error) {
         socket.emit('error', { 

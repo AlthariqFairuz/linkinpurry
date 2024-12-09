@@ -1775,4 +1775,56 @@ auth.post('/send-notif-post', async (c) => {
   }
 });
 
+auth.post('/send-notif-chat', async(c) =>{
+  try{
+    const isinya = await c.req.json();
+    const uname = await prisma.user.findMany({
+      where: {
+        id: isinya.userId
+      }, take: 1
+    });
+
+    const notifPayload = {
+      title: uname[0].username,
+      body: isinya.message,
+      data: {
+        url: "http://localhost:5173/chat/" + isinya.userId
+      }
+    }
+    const subscriptions = await prisma.pushSubscription.findMany({
+      where: {
+        userId: isinya.toId,
+      }, 
+      orderBy: {
+        createdAt: 'desc',
+      }, take: 1,
+    });
+    // console.log("halo")
+    const subscription = subscriptions[0];
+    if (typeof subscription.keys === 'object' && subscription.keys !== null) {
+      // console.log("halo halo")
+      const keys = subscription.keys as { auth: string; p256dh: string };
+      try {
+        await webPush.sendNotification(
+          {
+            endpoint: subscription.endpoint,
+            keys: {
+              auth: keys.auth, 
+              p256dh: keys.p256dh 
+            }
+          },
+          JSON.stringify(notifPayload)
+        );
+      } catch(error) {
+        // console.log("errornya: " + error);
+      }
+    }
+    return c.json({status: 'success'}, 200);
+  } catch (error){
+    console.error('Error sending notification:', error);
+    return c.json({ error: 'Failed to send notification' }, 500);
+  }
+})
+
+
 export default auth;

@@ -110,52 +110,39 @@ export default function Home() {
 
     fetchUserData();
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker
-        .register('notifications/sw.js')
-        .then((registration) => {
-          console.log("Registration successful", registration);
-        })
-        .catch((error) => {
-          console.log("Service worker registration failed", error);
-        });
-    }
-  
-    if (Notification.permission === "default") {
       const handleServiceWorker = async () => {
-        if ("serviceWorker" in navigator){
-          const register = await navigator.serviceWorker.register('notifications/sw.js'); 
+        const register = await navigator.serviceWorker.register('notifications/sw.js'); 
 
-          const resVap = await fetch("http://localhost:3000/api/vapid-public");
-          const hasil1 = await resVap.json();
+        const resVap = await fetch("http://localhost:3000/api/vapid-public");
+        const hasil1 = await resVap.json();
 
-          const subscription = await register.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: hasil1.public_key || "",
-          });
-
-          const res = await fetch("http://localhost:3000/api/subscribe", {
-            method: "POST",
-            credentials: 'include',
-            body: JSON.stringify(subscription),
-            headers: {
-              "content-type": "application/json",
-            },
-          });
-    
-          const hasil = await res.json();
-          console.log(hasil);
-        }
-      };
-  
-      Notification.requestPermission()
-        .then((permission) => {
-          if (permission === "granted") {
-            handleServiceWorker();
-          }
-        })
-        .catch((error) => {
-          console.error("Failed to request notification permission:", error);
+        const subscription = await register.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: hasil1.public_key || "",
         });
+
+        const res = await fetch("http://localhost:3000/api/subscribe", {
+          method: "POST",
+          credentials: 'include',
+          body: JSON.stringify(subscription),
+          headers: {
+            "content-type": "application/json",
+          },
+        });
+  
+        const hasil = await res.json();
+        console.log(hasil);
+        console.log("service worker successfully registered");
+      };
+      if (Notification.permission === "default"){
+        Notification.requestPermission()
+          .then((permission) => {
+            if (permission === "granted") handleServiceWorker();
+          })
+          .catch((error) => {
+            console.error("Failed to request notification permission:", error);
+          });
+      } else if (Notification.permission === "granted") handleServiceWorker();
     }
   }, [navigate, toast]);
   

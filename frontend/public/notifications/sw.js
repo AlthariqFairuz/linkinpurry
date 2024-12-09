@@ -14,5 +14,11 @@ self.addEventListener("push", (event) => {
         },
     };
     
-    self.registration.showNotification(title, notificationOptions);
+    event.waitUntil(self.registration.showNotification(title, notificationOptions))
+});
+
+self.addEventListener('notificationclick', (event) => {
+    const url = event.notification.data.url;
+    if (url) event.waitUntil(clients.openWindow(url));
+    event.notification.close();
 });
