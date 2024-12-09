@@ -165,6 +165,15 @@ http://localhost:3000/swagger
    - Check if Service Worker is registered successfully
    - Ensure browser supports Push API
 
+## Load test
+### Profile
+![image](https://github.com/user-attachments/assets/67e54510-df45-4e61-adfa-7832befc214d)
+
+### Feed
+![image](https://github.com/user-attachments/assets/560912af-e6d0-49ce-b245-7e2643315432)
+
+
+
 ## Contributors
 ### Client-side:
 - Login and Register : 13522027
