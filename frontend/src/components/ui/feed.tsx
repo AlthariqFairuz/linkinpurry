@@ -25,7 +25,7 @@ export function Feed({ currentUser }: {currentUser: User | null}) {
   const fetchPosts = useCallback(async (cursor?: string) => {
     // Use the ref instead of the state to prevent concurrent fetches
     if (isLoadingRef.current) {
-      console.log('Fetch prevented - already loading');
+      // console.log('Fetch prevented - already loading');
       return;
     }
 
@@ -41,7 +41,7 @@ export function Feed({ currentUser }: {currentUser: User | null}) {
         url.searchParams.append('cursor', cursor);
       }
 
-      console.log('Fetching from URL:', url.toString());
+      // console.log('Fetching from URL:', url.toString());
 
       const response = await fetch(url.toString(), {
         credentials: 'include',
@@ -67,7 +67,6 @@ export function Feed({ currentUser }: {currentUser: User | null}) {
         throw new Error(data.message);
       }
     } catch (error) {
-      console.error('Error in fetchPosts:', error);
       setError(error.message);
       toast({
         title: "Error",
@@ -87,17 +86,17 @@ export function Feed({ currentUser }: {currentUser: User | null}) {
 
   useEffect(() => {
     if (!hasMore) {
-      console.log('No more posts to load, skipping observer setup');
+      // console.log('No more posts to load, skipping observer setup');
       return;
     }
 
     const handleObserver = (entries: IntersectionObserverEntry[]) => {
       const target = entries[0];
-      console.log('Intersection observer triggered:', {
-        isIntersecting: target.isIntersecting,
-        hasMore,
-        isLoading: isLoadingRef.current
-      });
+      // console.log('Intersection observer triggered:', {
+      //   isIntersecting: target.isIntersecting,
+      //   hasMore,
+      //   isLoading: isLoadingRef.current
+      // });
 
       if (target.isIntersecting && hasMore && !isLoadingRef.current) {
         const lastPost = posts[posts.length - 1];
@@ -114,11 +113,11 @@ export function Feed({ currentUser }: {currentUser: User | null}) {
 
     if (observerTarget.current) {
       observer.observe(observerTarget.current);
-      console.log('Observer attached to target');
+      // console.log('Observer attached to target');
     }
 
     return () => {
-      console.log('Cleaning up observer');
+      // console.log('Cleaning up observer');
       observer.disconnect();
     };
   }, [posts, hasMore, fetchPosts]);
