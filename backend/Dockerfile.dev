@@ -1,5 +1,7 @@
 FROM node:20-alpine
 
+RUN ln -s /usr/lib/libssl.so.3 /lib/libssl.so.3
+
 WORKDIR /app/backend
 
 # Copy package files
